@@ -10,7 +10,7 @@ const app = express();
 app.use(express.json());
 dotenv.config();
 
-app.use(categoryRouter);
+app.use("/api", categoryRouter);
 
 //connect to MongoDB
 connectDB(process.env.MONGODB_URL);
