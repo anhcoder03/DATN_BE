@@ -3,7 +3,7 @@ import cors from "cors";
 import dotenv from "dotenv";
 import connectDB from "./configs/database.js";
 
-import categoryRouter from "./Routes/CategoryRoutes.js"
+import categoryRouter from "./Routes/CategoryRoutes.js";
 
 dotenv.config();
 const app = express();
