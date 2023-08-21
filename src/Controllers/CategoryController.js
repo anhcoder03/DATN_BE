@@ -88,6 +88,18 @@ export const deleteCategory = async (req, res) => {
 export const updateCategory = async (req, res) => {
   try {
     const id = req.params.id;
+
+    // validate form
+    const { error } = categoryValidate.validate(req.body, {
+      abortEarly: false,
+    });
+
+    if (error) {
+      return res.status(401).json({
+        message: error.message,
+      });
+    }
+
     const category = await Category.findOneAndUpdate({ _id: id }, req.body, {
       new: true,
     });
