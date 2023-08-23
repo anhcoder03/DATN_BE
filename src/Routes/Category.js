@@ -5,7 +5,7 @@ import {
   getAllCategory,
   getOneCategory,
   updateCategory,
-} from "../Controllers/CategoryController.js";
+} from "../Controllers/Category.js";
 const router = express.Router();
 router.get("/categories", getAllCategory);
 router.get("/categories/:id", getOneCategory);

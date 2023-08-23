@@ -1,17 +1,18 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
-import connectDB from "./configs/database.js";
+import connectDB from "./Configs/database.js";
 
-import categoryRouter from "./Routes/CategoryRoutes.js";
-import medicineRouter from './Routes/Medicine.js'
+import categoryRouter from "./Routes/Category.js";
+import medicineRouter from "./Routes/Medicine.js";
 dotenv.config();
 const app = express();
 app.use(express.json());
-dotenv.config();
+app.use(cors());
 
+dotenv.config();
 app.use(categoryRouter);
-app.use(medicineRouter)
+app.use(medicineRouter);
 //connect to MongoDB
 connectDB(process.env.MONGODB_URL);
 // middleware
