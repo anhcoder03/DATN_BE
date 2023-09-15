@@ -1,4 +1,5 @@
 import Role from "../Models/Role.js";
+import User from "../Models/User.js";
 import roleValidate from "../Schemas/Role.js";
 
 export const getAllRole = async (req, res) => {
@@ -105,18 +106,65 @@ export const updateRole = async (req, res) => {
   }
 };
 
+// export const deleteRole = async (req, res) => {
+//   try {
+//     const role = await Role.findByIdAndRemove(req.params.id);
+
+//     if (!role) {
+//       return res.status(400).json({
+//         message: "Tài nguyên không tồn tại!",
+//       });
+//     }
+//     return res.json({
+//       message: "Xoá vai trò thành công!",
+//       role,
+//     });
+//   } catch (error) {
+//     return res.status(404).json({
+//       message: error.message,
+//     });
+//   }
+// };
+
 export const deleteRole = async (req, res) => {
   try {
-    const role = await Role.findByIdAndRemove(req.params.id);
+    const { id } = req.params;
 
+    // Kiểm tra xem category có tồn tại không
+    const role = await Role.findById(id);
     if (!role) {
-      return res.status(400).json({
-        message: "Tài nguyên không tồn tại!",
+      return res.status(404).json({
+        message: "Không tìm thấy vai trò!",
       });
     }
+    const users = await User.find({ role: id });
+
+    const noRoleYet = await Role.findOne({ name: "Chưa có vai trò" });
+    if (noRoleYet) {
+      await User.updateMany({ role: id }, { role: noRoleYet._id });
+      await Role.findByIdAndUpdate(noRoleYet._id, {
+        $push: {
+          users: {
+            $each: users.map((user) => user._id),
+          },
+        },
+      });
+    } else {
+      const newNoRoleyet = await Role.create({ name: "Chưa có vai trò" });
+      await User.updateMany({ role: id }, { role: newNoRoleyet._id });
+
+      await Role.findByIdAndUpdate(newNoRoleyet._id, {
+        $push: {
+          users: {
+            $each: users.map((user) => user._id),
+          },
+        },
+      });
+    }
+
+    await Role.findByIdAndDelete(id);
     return res.json({
-      message: "Xoá vai trò thành công!",
-      role,
+      message: "Xóa danh mục thuốc thành công !",
     });
   } catch (error) {
     return res.status(404).json({
