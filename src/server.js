@@ -8,6 +8,7 @@ import medicineRouter from "./Routes/Medicine.js";
 import customerRouter from "./Routes/Customer.js";
 import roleRouter from "./Routes/Role.js";
 import userRouter from "./Routes/User.js";
+import serviceRouter from "./Routes/Service.js";
 dotenv.config();
 const app = express();
 app.use(express.urlencoded());
@@ -20,6 +21,7 @@ app.use(medicineRouter);
 app.use(roleRouter);
 app.use(customerRouter);
 app.use(userRouter);
+app.use(serviceRouter);
 //connect to MongoDB
 connectDB(process.env.MONGODB_URL);
 // middleware
