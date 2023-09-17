@@ -1,6 +1,5 @@
 import Customer from "../Models/Customer.js";
 import customerValidate from "../Schemas/Customer.js";
-
 export const getAllCustomers = async (req, res) => {
   try {
     const customers = await Customer.find();
@@ -19,7 +18,6 @@ export const getAllCustomers = async (req, res) => {
     });
   }
 };
-
 export const getOneCustomer = async (req, res) => {
   try {
     const customer = await Customer.findById(req.params.id);
@@ -96,7 +94,6 @@ export const addCustomer = async (req, res) => {
         message: "Dữ liệu không hợp lệ: " + error.message,
       });
     }
-
     // Kiểm tra xem có mã ID được cung cấp hay không
     let customerId = req.body._id;
     if (!customerId) {
