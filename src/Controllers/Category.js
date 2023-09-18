@@ -3,7 +3,15 @@ import Category from "../Models/Category.js";
 import Medicine from "../Models/Medicine.js";
 export const getAllCategory = async (req, res) => {
   try {
-    const category = await Category.find();
+    const { _page = 1, _limit = 10, _sort = "createdAt", _order = "asc" } = req.query
+    const options = {
+      page: _page,
+      limit: _limit,
+      sort: {
+        [_sort]: _order === "asc" ? 1 : -1,
+      }
+    }
+    const category = await Category.paginate({}, options);
     if (!category) {
       return res.status(400).json({
         message: "Tài nguyên không tồn tại !",

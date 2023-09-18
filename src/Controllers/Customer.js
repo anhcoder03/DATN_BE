@@ -2,7 +2,15 @@ import Customer from "../Models/Customer.js";
 import customerValidate from "../Schemas/Customer.js";
 export const getAllCustomers = async (req, res) => {
   try {
-    const customers = await Customer.find();
+    const { _page = 1, _limit = 10, _sort = "createdAt", _order = "asc" } = req.query
+    const options = {
+      page: _page,
+      limit: _limit,
+      sort: {
+        [_sort]: _order === "asc" ? 1 : -1,
+      }
+    }
+    const customers = await Customer.paginate({}, options);
     if (!customers || customers.length === 0) {
       return res.status(404).json({
         message: "Không tìm thấy khách hàng nào!",

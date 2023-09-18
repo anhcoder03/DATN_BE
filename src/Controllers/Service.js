@@ -4,7 +4,15 @@ import serviceValidate from "../Schemas/Service.js";
 
 export const getAllService = async (req, res) => {
     try {
-        const services = await Service.find();
+        const { _page = 1, _limit = 10, _sort = "createdAt", _order = "asc" } = req.query
+        const options = {
+            page: _page,
+            limit: _limit,
+            sort: {
+                [_sort]: _order === "asc" ? 1 : -1,
+            }
+        }
+        const services = await Service.paginate({}, options);
         if (!services) {
             return res.status(400).json({
                 message: "Tài nguyên không tồn tại !",
