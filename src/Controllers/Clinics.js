@@ -3,7 +3,15 @@ import clinicValidate from "../Schemas/Clinics.js";
 
 export const getAllClinic = async (req, res) => {
   try {
-    const clinics = await Clinics.find();
+    const { _page = 1, _limit = 10, _sort = "createdAt", _order = "asc" } = req.query
+    const options = {
+      page: _page,
+      limit: _limit,
+      sort: {
+        [_sort]: _order === "asc" ? 1 : -1,
+      }
+    }
+    const clinics = await Clinics.paginate({}, options);
     if (!clinics) {
       return res.status(400).json({
         message: "Tài nguyên không tồn tại !",

@@ -5,7 +5,15 @@ import bcrypt from "bcryptjs";
 
 export const getAllUser = async (req, res) => {
   try {
-    const users = await User.find();
+    const { _page = 1, _limit = 10, _sort = "createdAt", _order = "asc" } = req.query
+    const options = {
+      page: _page,
+      limit: _limit,
+      sort: {
+        [_sort]: _order === "asc" ? 1 : -1,
+      }
+    }
+    const users = await User.paginate({}, options);
     if (!users) {
       return res.status(400).json({
         message: "Tài nguyên không tồn tại !",
