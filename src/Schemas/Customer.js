@@ -1,6 +1,9 @@
 import Joi from "joi";
-
-const addressSchema = Joi.object({
+const customerValidate = Joi.object({
+  _id: Joi.string(),
+  name: Joi.string().trim().required().messages({
+    "string.empty": "Tên khách hàng không được để trống",
+  }),
   province: Joi.string().trim().required().messages({
     "string.empty": "Trường Tỉnh không được để trống",
   }),
@@ -12,16 +15,6 @@ const addressSchema = Joi.object({
   }),
   detailedAddress: Joi.string().trim().required().messages({
     "string.empty": "Trường Địa chỉ chi tiết không được để trống",
-  }),
-});
-
-const customerValidate = Joi.object({
-  _id: Joi.string(),
-  name: Joi.string().trim().required().messages({
-    "string.empty": "Tên khách hàng không được để trống",
-  }),
-  address: addressSchema.required().messages({
-    "object.base": "Địa chỉ là một đối tượng bắt buộc",
   }),
   phone: Joi.string()
     .trim()

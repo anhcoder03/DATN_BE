@@ -1,13 +1,5 @@
 import mongoose from "mongoose";
 import mongoosePaginate from "mongoose-paginate-v2";
-
-const addressSchema = new mongoose.Schema({
-  province: String,
-  district: String,
-  commune: String,
-  detailedAddress: String,
-});
-
 const CustomerSchema = new mongoose.Schema(
   {
     _id: {
@@ -17,7 +9,18 @@ const CustomerSchema = new mongoose.Schema(
     name: {
       type: String,
     },
-    address: addressSchema,
+    province: {
+      type: String,
+    },
+    district: {
+      type: String,
+    },
+    commune: {
+      type: String,
+    },
+    detailedAddress: {
+      type: String,
+    },
     phone: {
       type: String,
     },
