@@ -4,6 +4,7 @@ import {
   deleteRole,
   getAllRole,
   getOneRole,
+  getUserByName,
   updateRole,
 } from "../Controllers/Role.js";
 
@@ -13,4 +14,5 @@ router.get("/role/:id", getOneRole);
 router.post("/role", addRole);
 router.delete("/role/:id", deleteRole);
 router.put("/role/:id", updateRole);
+router.get("/rol", getUserByName);
 export default router;
