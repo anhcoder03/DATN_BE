@@ -172,3 +172,24 @@ export const deleteRole = async (req, res) => {
     });
   }
 };
+
+export const getUserByName = async (req, res) => {
+  try {
+    const users = await Role.findOne({ name: req.query.name }).populate(
+      "users"
+    );
+    if (!users) {
+      return res.status(400).json({
+        message: "Tài nguyên không tồn tại !",
+      });
+    }
+    return res.json({
+      message: "Lấy tài nguyên thành công !",
+      users: users.users,
+    });
+  } catch (error) {
+    return res.status(404).json({
+      message: error.message,
+    });
+  }
+};
