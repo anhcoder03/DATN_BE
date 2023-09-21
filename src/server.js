@@ -15,7 +15,7 @@ import clinicRouter from "./Routes/Clinics.js";
 import medicalExaminationSlipRouter from "./Routes/MedicalExaminationSlip.js";
 dotenv.config();
 const app = express();
-app.use(express.urlencoded({ extended: false }));
+app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(cors());
 const server = createServer(app);
