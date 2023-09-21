@@ -3,26 +3,18 @@ import Medicine from "../Models/Medicine.js";
 import CategoryModel from "../Models/Category.js";
 const getAllMedicine = async (req, res) => {
   try {
-    const { _page = 1, _limit = 10, _sort = "createdAt", _order = "asc" } = req.query
-    const options = {
-      page: _page,
-      limit: _limit,
-      sort: {
-        [_sort]: _order === "asc" ? 1 : -1,
-      }
-    }
-    const medicine = await Medicine.paginate({}, options);
-    if (!medicine) {
+    const medicines = await Medicine.find();
+    if (medicines.length <= 0) {
       return res.status(400).json({
-        message: "Sản phẩm không tồn tại!",
+        message: "Danh sách thuốc trống!",
       });
     }
     return res.json({
-      message: "Lấy sản phẩm thành công!",
-      medicine,
+      message: "Lấy danh sách thuốc thành công!",
+      medicines,
     });
   } catch (error) {
-    return res.status(404).json({
+    return res.status(500).json({
       message: error.message,
     });
   }
@@ -32,16 +24,16 @@ const getOneMedicine = async (req, res) => {
   try {
     const medicine = await Medicine.findById(req.params.id);
     if (!medicine) {
-      return res.status(400).json({
-        message: "Chi tiết sản phẩm không tồn tại!",
+      return res.status(404).json({
+        message: "Thuốc không tồn tại!",
       });
     }
     return res.json({
-      message: "Lấy chi tiết sản phẩm thành công!",
+      message: "Lấy thuốc thành công!",
       medicine,
     });
   } catch (error) {
-    return res.status(404).json({
+    return res.status(500).json({
       message: error.message,
     });
   }
@@ -53,17 +45,18 @@ const createMedicine = async (req, res) => {
       abortEarly: false,
     });
     if (error) {
+      const errArr = error.details.map((err) => err.message);
       return res.status(401).json({
-        message: error.details[0].message,
+        message: errArr,
       });
     }
-    // check tồn tại tên sản phẩm
-    const existingMedicine = await CategoryModel.findOne({
+    // check tồn tại tên Thuốc
+    const existingMedicine = await Medicine.findOne({
       name: req.body.name,
     });
     if (existingMedicine) {
       return res.status(400).json({
-        message: "Tên sản phẩm đã tồn tại",
+        message: "Tên thuốc đã tồn tại!",
       });
     }
     const medicine = await Medicine.create(req.body);
@@ -71,11 +64,11 @@ const createMedicine = async (req, res) => {
       $addToSet: { products: medicine._id },
     });
     return res.json({
-      message: "Thêm sản phẩm thành công",
+      message: "Thêm thuốc thành công!",
       medicine,
     });
   } catch (error) {
-    return res.status(404).json({
+    return res.status(500).json({
       message: error.message,
     });
   }
@@ -91,12 +84,11 @@ const deleteMedicine = async (req, res) => {
     });
     if (!medicine) {
       return res.status(400).json({
-        message: "Sản phẩm không tồn tại!",
+        message: "Thuốc không tồn tại!",
       });
     }
     return res.json({
-      message: "Xoá sản phẩm thành công!",
-      medicine,
+      message: "Xoá thuốc thành công!",
     });
   } catch (error) {
     return res.status(404).json({
@@ -119,8 +111,9 @@ const updateMedicine = async (req, res) => {
         message: error.message,
       });
     }
-    // check tồn tại tên sản phẩm
-    const existingMedicine = await CategoryModel.findOne({
+
+    // check tồn tại tên Thuốc
+    const existingMedicine = await Medicine.findOne({
       name: name,
     });
     if (existingMedicine) {
@@ -132,7 +125,7 @@ const updateMedicine = async (req, res) => {
     const medicine = await Medicine.findById(id);
     if (!medicine) {
       return res.status(404).json({
-        message: "Thuốc không tồn tại !",
+        message: "Thuốc không tồn tại!",
       });
     }
 
@@ -170,7 +163,7 @@ const updateMedicine = async (req, res) => {
     }
 
     return res.status(200).json({
-      message: "Cập nhật thông tin thuốc thành công !",
+      message: "Cập nhật thông tin thuốc thành công!",
       medicine: medicineUpdated,
     });
   } catch (error) {
