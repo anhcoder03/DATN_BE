@@ -13,6 +13,7 @@ import userRouter from "./Routes/User.js";
 import serviceRouter from "./Routes/Service.js";
 import clinicRouter from "./Routes/Clinics.js";
 import medicalExaminationSlipRouter from "./Routes/MedicalExaminationSlip.js";
+import medicalExaminationInvoiceRouter from "./Routes/MedicalExaminationInvoice.js";
 dotenv.config();
 const app = express();
 app.use(express.urlencoded({ extended: true }));
@@ -29,6 +30,7 @@ app.use(userRouter);
 app.use(serviceRouter);
 app.use(clinicRouter);
 app.use(medicalExaminationSlipRouter);
+app.use(medicalExaminationInvoiceRouter);
 //connect to MongoDB
 connectDB(process.env.MONGODB_URL);
 // middleware
