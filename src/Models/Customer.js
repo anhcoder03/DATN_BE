@@ -10,13 +10,109 @@ const CustomerSchema = new mongoose.Schema(
       type: String,
     },
     province: {
-      type: String,
+      created_time: {
+        type: String,
+      },
+      updated_time: {
+        type: String,
+      },
+      code: {
+        type: String,
+      },
+      name: {
+        type: String,
+      },
+      name_en: {
+        type: String,
+      },
+      full_name: {
+        type: String,
+      },
+      full_name_en: {
+        type: String,
+      },
+      code_name: {
+        type: String,
+      },
+      medon_uuid: {
+        type: String,
+      },
+      label: {
+        type: String,
+      },
+      value: {
+        type: Number,
+      },
     },
     district: {
-      type: String,
+      created_time: {
+        type: String,
+      },
+      updated_time: {
+        type: String,
+      },
+      code: {
+        type: String,
+      },
+      name: {
+        type: String,
+      },
+      name_en: {
+        type: String,
+      },
+      full_name: {
+        type: String,
+      },
+      full_name_en: {
+        type: String,
+      },
+      code_name: {
+        type: String,
+      },
+      medon_uuid: {
+        type: String,
+      },
+      label: {
+        type: String,
+      },
+      value: {
+        type: Number,
+      },
     },
     commune: {
-      type: String,
+      created_time: {
+        type: String,
+      },
+      updated_time: {
+        type: String,
+      },
+      code: {
+        type: String,
+      },
+      name: {
+        type: String,
+      },
+      name_en: {
+        type: String,
+      },
+      full_name: {
+        type: String,
+      },
+      full_name_en: {
+        type: String,
+      },
+      code_name: {
+        type: String,
+      },
+      medon_uuid: {
+        type: String,
+      },
+      label: {
+        type: String,
+      },
+      value: {
+        type: Number,
+      },
     },
     detailedAddress: {
       type: String,
@@ -32,6 +128,16 @@ const CustomerSchema = new mongoose.Schema(
     },
     gender: {
       type: String,
+    },
+    email: {
+      type: String,
+    },
+    note: {
+      type: String,
+    },
+    creator: {
+      type: mongoose.Types.ObjectId,
+      ref: "User",
     },
   },
   { versionKey: false, timestamps: true }

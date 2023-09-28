@@ -1,16 +1,16 @@
 import Joi from "joi";
 const customerValidate = Joi.object({
-  _id: Joi.string(),
+  _id: Joi.any(),
   name: Joi.string().trim().required().messages({
     "string.empty": "Tên khách hàng không được để trống",
   }),
-  province: Joi.string().trim().required().messages({
+  province: Joi.object().required().messages({
     "string.empty": "Trường Tỉnh không được để trống",
   }),
-  district: Joi.string().trim().required().messages({
+  district: Joi.object().required().messages({
     "string.empty": "Trường Huyện không được để trống",
   }),
-  commune: Joi.string().trim().required().messages({
+  commune: Joi.object().required().messages({
     "string.empty": "Trường Xã không được để trống",
   }),
   detailedAddress: Joi.string().trim().required().messages({
@@ -32,6 +32,13 @@ const customerValidate = Joi.object({
   gender: Joi.string().allow("").trim().messages({
     "string.empty": "Trường Giới tính không được để trống",
   }),
+  email: Joi.string()
+    .email({ tlds: { allow: false } })
+    .messages({
+      "string.email": "Please enter a valid email address",
+    }),
+  note: Joi.any(),
+  creator: Joi.string().required(),
 });
 
 export default customerValidate;
