@@ -2,15 +2,37 @@ import Customer from "../Models/Customer.js";
 import customerValidate from "../Schemas/Customer.js";
 export const getAllCustomers = async (req, res) => {
   try {
-    const { _page = 1, _limit = 10, _sort = "createdAt", _order = "asc" } = req.query
+    const {
+      _page = 1,
+      _limit = 10,
+      _sort = "createdAt",
+      _order = "asc",
+      _gender,
+      _createdAt,
+      search,
+    } = req.query;
+    const query = {};
+    if (_createdAt) {
+      query.createdAt = { $gte: new Date(_createdAt) };
+    }
+    if (search && search.trim() !== "") {
+      query.$or = [
+        { phone: { $regex: new RegExp(search, "i") } },
+        { name: { $regex: new RegExp(search, "i") } },
+        { _id: search },
+      ];
+    }
+    if (_gender) {
+      query.gender = _gender;
+    }
     const options = {
       page: _page,
       limit: _limit,
       sort: {
         [_sort]: _order === "asc" ? 1 : -1,
-      }
-    }
-    const customers = await Customer.paginate({}, options);
+      },
+    };
+    const customers = await Customer.paginate(query, options);
     if (!customers || customers.length === 0) {
       return res.status(404).json({
         message: "Không tìm thấy khách hàng nào!",
@@ -104,7 +126,7 @@ export const addCustomer = async (req, res) => {
     }
     // Kiểm tra xem có mã ID được cung cấp hay không
     let customerId = req.body._id;
-    if (!customerId) {
+    if (!customerId || customerId === "") {
       // Nếu không có mã ID, tạo mã mới bằng cách kết hợp mã KH và mã tự sinh
       const timestamp = new Date().getTime();
       customerId = "KH" + timestamp.toString();
