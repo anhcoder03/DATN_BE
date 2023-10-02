@@ -39,6 +39,8 @@ const customerValidate = Joi.object({
     }),
   note: Joi.any(),
   creator: Joi.string().required(),
+  createdAt: Joi.any(),
+  updatedAt: Joi.any()
 });
 
 export default customerValidate;
