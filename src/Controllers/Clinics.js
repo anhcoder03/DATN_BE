@@ -3,14 +3,19 @@ import clinicValidate from "../Schemas/Clinics.js";
 
 export const getAllClinic = async (req, res) => {
   try {
-    const { _page = 1, _limit = 10, _sort = "createdAt", _order = "asc" } = req.query
+    const {
+      _page = 1,
+      _limit = 10,
+      _sort = "createdAt",
+      _order = "asc",
+    } = req.query;
     const options = {
       page: _page,
       limit: _limit,
       sort: {
         [_sort]: _order === "asc" ? 1 : -1,
-      }
-    }
+      },
+    };
     const clinics = await Clinics.paginate({}, options);
     if (!clinics) {
       return res.status(400).json({
@@ -67,7 +72,7 @@ export const addClinic = async (req, res) => {
     }
     const clinic = await Clinics.create(req.body);
     return res.json({
-      message: "Thêm tài nguyên thành công !",
+      message: "Thêm tài nguyên thành công!",
       clinic,
     });
   } catch (error) {

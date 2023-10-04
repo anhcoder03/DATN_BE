@@ -28,7 +28,7 @@ const MedicalExaminationInvoiceSchema = Schema(
 
 MedicalExaminationInvoiceSchema.index({
   _id: "text",
-  paymentMethod: "text",
+  paymentStatus: "text",
   paymentMethod: "text",
 });
 MedicalExaminationInvoiceSchema.plugin(mongoosePaginate);
