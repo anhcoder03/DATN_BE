@@ -2,7 +2,7 @@ import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import { createServer } from "node:http";
-import connectDB from "./Configs/database.js";
+import connectDB from "./configs/database.js";
 import { socketIo } from "./configs/soketio.js";
 
 import categoryRouter from "./Routes/Category.js";

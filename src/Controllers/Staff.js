@@ -87,44 +87,54 @@ export const updateStaff = async (req, res) => {
       });
     }
 
-    // validate NAME before update staff
-    const nameExistedArr = await Staff.find({
-      name: { $regex: new RegExp("^" + name + "$", "i") },
-    });
+    // function update staff
+    const updateUserInfo = async () => {
+      staff.name = name;
+      staff.phone = phone;
+      staff.email = email;
+      await staff.save();
 
-    // if (nameExistedArr.includes(name) && !nameExistedArr.includes(id)) {
-    //   return res.status(400).json({
-    //     message: "Tên nhân viên này đã tồn tại. Vui lòng chọn tên khác!",
-    //   });
-    // }
-    // if (staff.nameLowerCase == nameLowerCase && nameLowerCase) {
-    // }
-
-    // validate EMAIL before create new staff
-    const emailExists = await Staff.findOne({
-      email: { $regex: new RegExp("^" + email + "$", "i") },
-    });
-
-    if (emailExists) {
-      return res.status(400).json({
-        message: "Email nhân viên này đã tồn tại. Vui lòng chọn email khác!",
+      return res.status(200).json({
+        message: "Cập nhật nhân viên bán thuốc thành công!",
+        staff,
       });
-    }
+    };
 
-    // validate PHONE before create new staff
-    const phoneExists = await Staff.findOne({ phone });
-
-    if (phoneExists) {
-      return res.status(400).json({
-        message:
-          "Số điện thoại nhân viên này đã tồn tại. Vui lòng chọn số điện thoại khác!",
+    // check before update
+    if (name === staff.name || email === staff.email || phone === staff.phone) {
+      updateUserInfo();
+    } else {
+      console.log("aloalo");
+      // Nếu tên mới khác tên cũ, kiểm tra xem tên mới đã tồn tại chưa
+      const nameExistedArr = await Staff.find({
+        name: { $regex: new RegExp("^" + name + "$", "i") },
       });
-    }
+      const emailExistedArr = await Staff.find({
+        email: { $regex: new RegExp("^" + email + "$", "i") },
+      });
 
-    return res.status(200).json({
-      message: "Cập nhật nhân viên bán thuốc thành công!",
-      staff,
-    });
+      if (nameExistedArr.length > 0 || emailExistedArr.length > 0) {
+        // Nếu tên mới đã tồn tại
+        const existingNameStaff = nameExistedArr.find(
+          (staff) => staff.id !== id
+        );
+        const existingEmailStaff = nameExistedArr.find(
+          (staff) => staff.id !== id
+        );
+        if (existingNameStaff) {
+          return res.status(400).json({
+            message: "Tên nhân viên này đã tồn tại. Vui lòng chọn tên khác!",
+          });
+        } else if (existingEmailStaff) {
+          return res.status(400).json({
+            message:
+              "Email nhân viên này đã tồn tại. Vui lòng chọn email khác!",
+          });
+        } else {
+          updateUserInfo();
+        }
+      }
+    }
   } catch (error) {
     return res.status(500).json({
       message: `Đã xảy ra lỗi khi cập nhật nhân viên bán thuốc ${error.message}!`,
