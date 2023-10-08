@@ -12,6 +12,7 @@ const StaffSchema = new Schema(
 StaffSchema.index({
   name: "text",
   email: "text",
+  phone: "text",
 });
 StaffSchema.plugin(mongoosePaginate);
 export default mongoose.model("Staff", StaffSchema);

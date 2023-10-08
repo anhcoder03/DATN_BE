@@ -19,6 +19,7 @@ export const getAllMedicalExaminationInvoice = async (req, res) => {
     sort: {
       [_sort]: _order === "asc" ? 1 : -1,
     },
+    populate: [{ path: "medicalExaminationSlipId" }],
   };
 
   try {
@@ -37,10 +38,7 @@ export const getAllMedicalExaminationInvoice = async (req, res) => {
 
     const MedicalExaminationInvoices = await MedicalExaminationInvoice.paginate(
       query,
-      {
-        options,
-        populate: [{ path: "medicalExaminationSlipId" }],
-      }
+      options
     );
 
     if (
