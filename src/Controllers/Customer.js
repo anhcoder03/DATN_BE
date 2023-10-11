@@ -67,52 +67,6 @@ export const getOneCustomer = async (req, res) => {
   }
 };
 
-// export const addCustomer = async (req, res) => {
-//     try {
-//         const { error } = customerValidate.validate(req.body, {
-//             abortEarly: false,
-//         });
-
-//         if (error) {
-//             return res.status(400).json({
-//                 message: "Dữ liệu không hợp lệ: " + error.message,
-//             });
-//         }
-
-//         const existingCustomer = await Customer.findOne({
-//             $or: [
-//                 { citizenId: req.body.citizenId },
-//                 { phone: req.body.phone }
-//             ]
-//         });
-
-//         if (existingCustomer) {
-//             const duplicateFields = [];
-//             if (existingCustomer.citizenId === req.body.citizenId) {
-//                 duplicateFields.push("Căn cước công dân đã bị trùng lặp");
-//             }
-//             if (existingCustomer.phone === req.body.phone) {
-//                 duplicateFields.push("Số điện thoại đã đã bị trùng lặp");
-//             }
-
-//             return res.status(409).json({
-//                 message: "Thông tin khách hàng đã tồn tại trong cơ sở dữ liệu!",
-//                 duplicateFields: duplicateFields,
-//             });
-//         }
-
-//         const customer = await Customer.create(req.body);
-//         return res.status(201).json({
-//             message: "Thêm khách hàng thành công!",
-//             customer,
-//         });
-//     } catch (error) {
-//         return res.status(500).json({
-//             message: "Lỗi khi thêm khách hàng: " + error.message,
-//         });
-//     }
-// };
-
 export const addCustomer = async (req, res) => {
   try {
     const { error } = customerValidate.validate(req.body, {
