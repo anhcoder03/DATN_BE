@@ -19,23 +19,47 @@ const medicineValidate = Joi.object({
     "number.base": "Giá bán phải là một số!",
     "number.min": "Giá bán phải lớn hơn 0",
   }),
-  time: Joi.string()
+  dateOfManufacture: Joi.string()
     .pattern(new RegExp(/^\d{2}\/\d{2}\/\d{4}$/))
     .required()
     .trim()
     .messages({
-      "string.empty": "Thời gian không được để trống!",
+      "string.empty": "Ngày sản xuất không được để trống!",
+      "string.pattern.base":
+        "Thời gian phải có định dạng DD/MM/YYYY (VD: 22/09/2023)",
+    }),
+  dateExpiry: Joi.string()
+    .pattern(new RegExp(/^\d{2}\/\d{2}\/\d{4}$/))
+    .required()
+    .trim()
+    .messages({
+      "string.empty": "Ngày hết hạn không được để trống!",
       "string.pattern.base":
         "Thời gian phải có định dạng DD/MM/YYYY (VD: 22/09/2023)",
     }),
   ingredient: Joi.string().required().trim().messages({
     "string.empty": "Thành phần không được để trống!",
   }),
-  use: Joi.string().required().trim().messages({
+  uses: Joi.string().required().trim().messages({
     "string.empty": "Công dụng không được để trống!",
   }),
   categoryId: Joi.required().messages({
     "string.empty": "Danh mục không được để trống!",
   }),
+  unit_import: Joi.required().messages({
+    "string.empty": "Đơn vị không được để trống!",
+  }),
+  unit_selling: Joi.required().messages({
+    "string.empty": "Đơn vị không được để trống!",
+  }),
+  creator: Joi.string(),
+  origin: Joi.required().messages({
+    "string.empty": "Xuất xứ không được để trống!",
+  }),
+  how_using: Joi.required().messages({
+    "string.empty": "Cách dùng không được để trống!",
+  }),
+  status: Joi.any(),
+  image: Joi.string(),
 });
 export default medicineValidate;

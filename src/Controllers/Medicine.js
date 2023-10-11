@@ -1,9 +1,32 @@
 import medicineValidate from "../Schemas/Medicine.js";
 import Medicine from "../Models/Medicine.js";
 import CategoryModel from "../Models/Category.js";
+import mongoose from "mongoose";
 const getAllMedicine = async (req, res) => {
+  const {
+    _page = 1,
+    _limit = 10,
+    _sort = "createdAt",
+    _order = "asc",
+    search,
+    _status,
+  } = req.query;
   try {
-    const medicines = await Medicine.find();
+    const query = {};
+    const options = {
+      page: _page,
+      limit: _limit,
+      sort: {
+        [_sort]: _order === "asc" ? 1 : -1,
+      },
+    };
+    if (search && search.trim() !== "") {
+      query.$or = [{ name: { $regex: new RegExp(search, "i") } }];
+    }
+    if (_status) {
+      query.status = _status;
+    }
+    const medicines = await Medicine.paginate(query, options);
     if (medicines.length <= 0) {
       return res.status(400).json({
         message: "Danh sách thuốc trống!",
@@ -22,7 +45,10 @@ const getAllMedicine = async (req, res) => {
 
 const getOneMedicine = async (req, res) => {
   try {
-    const medicine = await Medicine.findById(req.params.id);
+    const medicine = await Medicine.findById(req.params.id).populate([
+      "creator",
+      "categoryId",
+    ]);
     if (!medicine) {
       return res.status(404).json({
         message: "Thuốc không tồn tại!",
@@ -59,6 +85,7 @@ const createMedicine = async (req, res) => {
         message: "Tên thuốc đã tồn tại!",
       });
     }
+
     const medicine = await Medicine.create(req.body);
     await CategoryModel.findByIdAndUpdate(medicine.categoryId, {
       $addToSet: { products: medicine._id },
@@ -89,6 +116,7 @@ const deleteMedicine = async (req, res) => {
     }
     return res.json({
       message: "Xoá thuốc thành công!",
+      medicine,
     });
   } catch (error) {
     return res.status(404).json({
@@ -109,16 +137,6 @@ const updateMedicine = async (req, res) => {
     if (error) {
       return res.status(401).json({
         message: error.message,
-      });
-    }
-
-    // check tồn tại tên Thuốc
-    const existingMedicine = await Medicine.findOne({
-      name: name,
-    });
-    if (existingMedicine) {
-      return res.status(400).json({
-        message: "Tên thuốc đã tồn tại",
       });
     }
 
