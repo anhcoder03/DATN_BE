@@ -1,14 +1,25 @@
 import MedicalExaminationSlip from "../Models/MedicalExaminationSlip.js";
 import medicineExaminationSlipValidate from "../Schemas/MedicalExaminationSlip.js";
 
-export const getAllMedicalExaminationSlip = async (req, res) => {
+export const getAllExamination = async (req, res) => {
   try {
     const {
       _page = 1,
       _limit = 10,
       _sort = "createdAt",
       _order = "asc",
+      status,
+      search,
     } = req.query;
+    let query = {};
+    let aa = { $regex: new RegExp(search, "i") };
+    // hieenj tai moi querry dc id
+    if (search && search.trim() !== "") {
+      query.$or = [{ customerId: aa }, { _id: search }];
+    }
+    if (status) {
+      query.status = status;
+    }
     const options = {
       page: _page,
       limit: _limit,
@@ -24,8 +35,9 @@ export const getAllMedicalExaminationSlip = async (req, res) => {
         { path: "examinationServiceId" },
       ],
     };
+    console.log(query);
     const medicalExaminationSlips = await MedicalExaminationSlip.paginate(
-      {},
+      query,
       options
     );
     if (!medicalExaminationSlips || medicalExaminationSlips.length === 0) {
@@ -33,7 +45,6 @@ export const getAllMedicalExaminationSlip = async (req, res) => {
         message: "Không tìm thấy phiếu khám nào!",
       });
     }
-
     return res.json({
       message: "Lấy danh sách phiếu khám thành công!",
       medicalExaminationSlips,
@@ -47,6 +58,20 @@ export const getAllMedicalExaminationSlip = async (req, res) => {
 
 export const createMedicalExaminationSlip = async (req, res) => {
   try {
+    // Kiểm tra xem có mã ID được cung cấp hay không
+    let examinationId = req.body._id;
+    if (!examinationId || examinationId === "") {
+      // Nếu không có mã ID, tạo mã mới bằng cách kết hợp mã KH và mã tự sinh
+      const timestamp = new Date().getTime();
+      examinationId = "PK" + timestamp.toString();
+    } else {
+      const isExiting = await MedicalExaminationSlip.findById(examinationId);
+      if (isExiting) {
+        return res.status(403).json({
+          message: "Mã bệnh nhân đã tồn tại",
+        });
+      }
+    }
     const { error } = medicineExaminationSlipValidate.validate(req.body, {
       abortEarly: false,
     });
@@ -55,7 +80,10 @@ export const createMedicalExaminationSlip = async (req, res) => {
         message: error.details[0].message,
       });
     }
-    const medicine = await MedicalExaminationSlip.create(req.body);
+    const medicine = await MedicalExaminationSlip.create({
+      ...req.body,
+      id: examinationId,
+    });
     return res.json({
       message: "Thêm sản phẩm thành công",
       medicine,
