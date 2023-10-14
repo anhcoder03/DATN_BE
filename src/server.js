@@ -5,6 +5,7 @@ import { createServer } from "node:http";
 import connectDB from "./configs/database.js";
 import { socketIo } from "./configs/soketio.js";
 
+import uploadImageRouter from "./Routes/UploadImage.js";
 import categoryRouter from "./Routes/Category.js";
 import medicineRouter from "./Routes/Medicine.js";
 import customerRouter from "./Routes/Customer.js";
@@ -24,6 +25,7 @@ app.use(cors());
 const server = createServer(app);
 
 dotenv.config();
+app.use(uploadImageRouter);
 app.use(categoryRouter);
 app.use(medicineRouter);
 app.use(roleRouter);
