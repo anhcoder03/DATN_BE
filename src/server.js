@@ -2,7 +2,7 @@ import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import { createServer } from "node:http";
-import connectDB from "./Configs/database.js";
+import connectDB from "./configs/database.js";
 import { socketIo } from "./configs/soketio.js";
 
 import categoryRouter from "./Routes/Category.js";
@@ -13,6 +13,9 @@ import userRouter from "./Routes/User.js";
 import serviceRouter from "./Routes/Service.js";
 import clinicRouter from "./Routes/Clinics.js";
 import medicalExaminationSlipRouter from "./Routes/MedicalExaminationSlip.js";
+import medicalExaminationInvoiceRouter from "./Routes/MedicalExaminationInvoice.js";
+import staffRouter from "./Routes/Staff.js";
+import prescriptionRouter from "./Routes/Prescription.js";
 dotenv.config();
 const app = express();
 app.use(express.urlencoded({ extended: true }));
@@ -29,6 +32,9 @@ app.use(userRouter);
 app.use(serviceRouter);
 app.use(clinicRouter);
 app.use(medicalExaminationSlipRouter);
+app.use(medicalExaminationInvoiceRouter);
+app.use(staffRouter);
+app.use(prescriptionRouter);
 //connect to MongoDB
 connectDB(process.env.MONGODB_URL);
 // middleware
