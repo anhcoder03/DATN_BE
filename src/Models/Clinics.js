@@ -5,6 +5,9 @@ const ClinicSchema = new mongoose.Schema(
     name: {
       type: String,
     },
+    status: {
+      type: String,
+    },
     description: {
       type: String,
     },
