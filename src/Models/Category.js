@@ -5,6 +5,10 @@ const categorySchema = new mongoose.Schema(
     name: {
       type: String,
     },
+    image: {
+      type: String,
+      default: null,
+    },
     products: [
       {
         type: mongoose.Types.ObjectId,

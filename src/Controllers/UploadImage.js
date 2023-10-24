@@ -3,41 +3,27 @@ import cloudinary from "../Configs/cloudinary.js";
 //UPLOAD IMAGE
 export const uploadImage = async (req, res) => {
   const files = req.files;
-
-  if (!Array.isArray(files)) {
-    return res.status(400).json({
-      message: "No files were uploaded!",
-    });
-  }
+  console.log(files);
   try {
     const uploadPromises = files.map((file) => {
-      // Sử dụng Cloudinary API để upload file lên Cloudinary
-      return cloudinary.uploader.upload(file.path);
+      if (file.mimetype.startsWith("image/")) {
+        return cloudinary.uploader.upload(file.path);
+      } else if (file.mimetype.startsWith("video/")) {
+        return cloudinary.uploader.upload(file.path, {
+          resource_type: "video",
+        });
+      } else {
+        throw new Error("Invalid file type");
+      }
     });
-
-    // Chờ cho tất cả các file đều được upload lên Cloudinary
     const results = await Promise.all(uploadPromises);
-
-    if (!results) {
-      throw new Error(
-        "The image has not been loaded yet. Please wait a The image has not been loaded yet. Please wait a few seconds..."
-      );
-    }
-
-    // Trả về kết quả là một mảng các đối tượng chứa thông tin của các file đã upload lên Cloudinary
     const uploadedFiles = results.map((result) => ({
       url: result.secure_url,
       publicId: result.public_id,
     }));
-
-    return res.json({
-      message: "Images uploaded successfully!",
-      image_urls: uploadedFiles,
-    });
+    return res.json({ urls: uploadedFiles });
   } catch (error) {
-    return res.status(500).json({
-      message: error.message,
-    });
+    return res.status(500).json({ error: error.message });
   }
 };
 
