@@ -8,7 +8,9 @@ export const getAllCategory = async (req, res) => {
       _limit = 10,
       _sort = "createdAt",
       _order = "asc",
+      search,
     } = req.query;
+    let query = {};
     const options = {
       page: _page,
       limit: _limit,
@@ -16,7 +18,10 @@ export const getAllCategory = async (req, res) => {
         [_sort]: _order === "asc" ? 1 : -1,
       },
     };
-    const categories = await Category.paginate({}, options);
+    if (search && search.trim() !== "") {
+      query.name = { $regex: new RegExp(search, "i") };
+    }
+    const categories = await Category.paginate(query, options);
     if (!categories || categories.docs.length === 0) {
       return res.status(400).json({
         message: "Danh sách danh mục trống!",
@@ -156,7 +161,7 @@ export const updateCategory = async (req, res) => {
     });
 
     if (error) {
-      const errArr = error.details.map((err) => err.message);
+      const errArr = or.errdetails.map((err) => err.message);
       return res.status(401).json({
         message: errArr,
       });
@@ -171,7 +176,7 @@ export const updateCategory = async (req, res) => {
       });
     }
     return res.json({
-      message: "Update danh mục thành công!",
+      message: "Cập nhật danh mục thành công!",
       category,
     });
   } catch (error) {

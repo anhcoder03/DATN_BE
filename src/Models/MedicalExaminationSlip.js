@@ -10,6 +10,17 @@ const MedicalExaminationSlipSchema = new mongoose.Schema(
       type: String,
       ref: "Customer",
     },
+    customer: {
+      _id: {
+        type: String,
+      },
+      name: {
+        type: String,
+      },
+      phone: {
+        type: String,
+      },
+    },
     doctorId: {
       // bác sĩ khám
       type: mongoose.Types.ObjectId,
@@ -133,6 +144,7 @@ const MedicalExaminationSlipSchema = new mongoose.Schema(
   },
   { versionKey: false, timestamps: true }
 );
+
 MedicalExaminationSlipSchema.plugin(mongoosePaginate);
 export default mongoose.model(
   "MedicalExaminationSlip",
