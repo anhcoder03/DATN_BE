@@ -3,6 +3,7 @@ import {
   deleteUser,
   getAllUser,
   getOneUser,
+  refreshToken,
   signin,
   signup,
   updateUser,
@@ -13,6 +14,7 @@ router.get("/user", getAllUser);
 router.get("/user/:id", getOneUser);
 router.post("/signup", signup);
 router.post("/signin", signin);
+router.post("/refreshToken", refreshToken);
 router.delete("/user/:id", deleteUser);
 router.put("/user/:id", updateUser);
 export default router;

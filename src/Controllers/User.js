@@ -1,18 +1,31 @@
 import Role from "../Models/Role.js";
 import User from "../Models/User.js";
 import userValidate from "../Schemas/User.js";
+import {
+  generalAccessToken,
+  generalRefreshToken,
+  generalVerifyRefreshToken,
+  generalVerifyToken,
+} from "../Services/jwtService.js";
 import bcrypt from "bcryptjs";
+import dotenv from "dotenv";
+dotenv.config();
 
 export const getAllUser = async (req, res) => {
   try {
-    const { _page = 1, _limit = 10, _sort = "createdAt", _order = "asc" } = req.query
+    const {
+      _page = 1,
+      _limit = 10,
+      _sort = "createdAt",
+      _order = "asc",
+    } = req.query;
     const options = {
       page: _page,
       limit: _limit,
       sort: {
         [_sort]: _order === "asc" ? 1 : -1,
-      }
-    }
+      },
+    };
     const users = await User.paginate({}, options);
     if (!users) {
       return res.status(400).json({
@@ -44,81 +57,6 @@ export const getOneUser = async (req, res) => {
     });
   } catch (error) {
     return res.status(404).json({
-      message: error.message,
-    });
-  }
-};
-
-export const signup = async (req, res) => {
-  try {
-    const { error } = userValidate.validate(req.body, {
-      abortEarly: false,
-    });
-
-    if (error) {
-      return res.status(401).json({
-        message: error.message,
-      });
-    }
-
-    //kiem tra ten danh muc co ton tai trong CSDL hay chua
-    const existingEmail = await User.findOne({ email: req.body.email });
-    if (existingEmail) {
-      return res.status(400).json({
-        message: "Email đã tồn tại",
-      });
-    }
-
-    const hashedPassword = await bcrypt.hash(req.body.password, 10);
-
-    const user = await User.create({
-      ...req.body,
-      password: hashedPassword,
-    });
-    await Role.findByIdAndUpdate(user.role, {
-      $addToSet: { users: user._id },
-    });
-    return res.json({
-      message: "Thêm tài nguyên thành công !",
-      user,
-    });
-  } catch (error) {
-    return res.status(404).json({
-      message: error.message,
-    });
-  }
-};
-
-export const signin = async (req, res) => {
-  try {
-    const { email, password } = req.body;
-    if (!email || !password) {
-      return res.status(400).json({
-        success: false,
-        message: "Vui lòng điền đầy đủ thông tin",
-      });
-    }
-
-    const user = await User.findOne({ email });
-    if (!user) {
-      return res.status(400).json({
-        message: "Sai tài khoản đăng nhập!",
-      });
-    }
-
-    const hashedPassword = await bcrypt.compare(password, user.password);
-    if (!hashedPassword) {
-      return res.status(400).json({
-        message: "Mật khảu không khớp!",
-      });
-    }
-    user.password = undefined;
-    return res.status(201).json({
-      message: "Đăng nhập thành công ",
-      user,
-    });
-  } catch (error) {
-    return res.status(500).json({
       message: error.message,
     });
   }
@@ -199,6 +137,126 @@ export const updateUser = async (req, res) => {
     });
   } catch (error) {
     return res.status(404).json({
+      message: error.message,
+    });
+  }
+};
+
+export const signup = async (req, res) => {
+  try {
+    const { error } = userValidate.validate(req.body, {
+      abortEarly: false,
+    });
+
+    if (error) {
+      return res.status(401).json({
+        message: error.message,
+      });
+    }
+
+    //kiem tra ten danh muc co ton tai trong CSDL hay chua
+    const existingEmail = await User.findOne({ email: req.body.email });
+    if (existingEmail) {
+      return res.status(400).json({
+        message: "Email đã tồn tại",
+      });
+    }
+
+    const hashedPassword = await bcrypt.hash(req.body.password, 10);
+
+    const user = await User.create({
+      ...req.body,
+      password: hashedPassword,
+    });
+    await Role.findByIdAndUpdate(user.role, {
+      $addToSet: { users: user._id },
+    });
+    return res.json({
+      message: "Thêm tài nguyên thành công !",
+      user,
+    });
+  } catch (error) {
+    return res.status(404).json({
+      message: error.message,
+    });
+  }
+};
+
+export const signin = async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    if (!email || !password) {
+      return res.status(400).json({
+        success: false,
+        message: "Vui lòng điền đầy đủ thông tin",
+      });
+    }
+
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(400).json({
+        message: "Sai tài khoản đăng nhập!",
+      });
+    }
+
+    const hashedPassword = await bcrypt.compare(password, user.password);
+    if (!hashedPassword) {
+      return res.status(400).json({
+        message: "Mật khảu không khớp!",
+      });
+    }
+    user.password = undefined;
+
+    // tạo access token
+    const accessToken = generalAccessToken({
+      _id: user._id,
+    });
+
+    // tạo refresh token
+    const refreshToken = generalRefreshToken({
+      _id: user._id,
+    });
+
+    return res.status(201).json({
+      message: "Đăng nhập thành công ",
+      accessToken,
+      refreshToken,
+      user,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: error.message,
+    });
+  }
+};
+
+export const refreshToken = async (req, res) => {
+  const { refreshToken } = req.body;
+  if (!refreshToken) {
+    return res.status(400).json({ message: "Không có refreshToken!" });
+  }
+  try {
+    const {
+      payload: { _id },
+    } = generalVerifyRefreshToken({
+      refreshToken,
+      privateKey: process.env.JWT_RFT_PRIVATE,
+    });
+
+    const user = await User.findById(_id);
+
+    if (!user) {
+      return res.status(404).json({ message: "Không tìm thấy người dùng!" });
+    }
+
+    const accessToken = generalAccessToken({ _id: user._id });
+
+    return res.status(200).json({
+      message: "Tạo accessToken mới thành công!",
+      accessToken,
+    });
+  } catch (error) {
+    return res.status(500).json({
       message: error.message,
     });
   }

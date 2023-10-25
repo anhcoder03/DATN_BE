@@ -24,5 +24,5 @@ const userSchema = new mongoose.Schema(
   },
   { versionKey: false, timestamps: true }
 );
-userSchema.plugin(mongoosePaginate)
+userSchema.plugin(mongoosePaginate);
 export default mongoose.model("User", userSchema);
