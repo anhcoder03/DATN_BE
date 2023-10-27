@@ -12,5 +12,7 @@ const serviceValidate = Joi.object({
     "number.base": "Giá dịch vụ phải là số",
   }),
   status: Joi.number().default(1),
+  createdAt: Joi.any(),
+  updatedAt: Joi.any(),
 });
 export default serviceValidate;
