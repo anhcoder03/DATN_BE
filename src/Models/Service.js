@@ -2,6 +2,10 @@ import mongoose from "mongoose";
 import mongoosePaginate from "mongoose-paginate-v2";
 const ServiceSchema = new mongoose.Schema(
   {
+    _id: {
+      type: String,
+      required: true,
+    },
     name: {
       type: String,
     },
@@ -19,5 +23,12 @@ const ServiceSchema = new mongoose.Schema(
   },
   { versionKey: false, timestamps: true }
 );
+
+ServiceSchema.index({
+  _id: "text",
+  name: "text",
+  price: "text",
+  status: "text",
+});
 ServiceSchema.plugin(mongoosePaginate);
 export default mongoose.model("Service", ServiceSchema);
