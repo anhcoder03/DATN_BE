@@ -8,7 +8,10 @@ export const getAllClinic = async (req, res) => {
       _limit = 10,
       _sort = "createdAt",
       _order = "asc",
+      _status,
+      search,
     } = req.query;
+    const query = {};
     const options = {
       page: _page,
       limit: _limit,
@@ -16,7 +19,15 @@ export const getAllClinic = async (req, res) => {
         [_sort]: _order === "asc" ? 1 : -1,
       },
     };
-    const clinics = await Clinics.paginate({}, options);
+    if (_status) {
+      query.status = _status
+    }
+    if (search && search.trim() !== "") {
+      query.name = { $regex: new RegExp(search, "i") }
+    }
+    console.log("query", query);
+    const clinics = await Clinics.paginate(query, options);
+
     if (!clinics) {
       return res.status(400).json({
         message: "Tài nguyên không tồn tại !",
@@ -63,14 +74,28 @@ export const addClinic = async (req, res) => {
         message: error.message,
       });
     }
-
+    // Kiểm tra xem có mã ID được cung cấp hay không
+    let clinicId = req.body._id;
+    if (!clinicId || clinicId === "") {
+      // Nếu không có mã ID, tạo mã mới bằng cách kết hợp mã KH và mã tự sinh
+      const timestamp = new Date().getTime();
+      clinicId = "PK" + timestamp.toString();
+    }
+    else {
+      const isExiting = await Clinics.findById(clinicId);
+      if (isExiting) {
+        return res.status(403).json({
+          message: "Mã phòng khám đã tồn tại",
+        });
+      }
+    }
     const existingClinic = await Clinics.findOne({ name: req.body.name });
     if (existingClinic) {
       return res.status(400).json({
         message: "Tên phòng khám đã tồn tại trong cơ sở dữ liệu",
       });
     }
-    const clinic = await Clinics.create(req.body);
+    const clinic = await Clinics.create({ ...req.body, id: clinicId });
     return res.json({
       message: "Thêm tài nguyên thành công!",
       clinic,
