@@ -1,6 +1,6 @@
 import Joi from "joi";
 const clinicValidate = Joi.object({
-  _id: Joi.string(),
+  _id: Joi.any(),
   name: Joi.string().required().trim().messages({
     "string.empty": "Tên phòng khám không được để trống",
   }),
@@ -10,5 +10,7 @@ const clinicValidate = Joi.object({
   description: Joi.string().required().trim().messages({
     "string.empty": "Mô tả phòng khám không được để trống",
   }),
+  createdAt: Joi.any(),
+  updatedAt: Joi.any()
 });
 export default clinicValidate;
