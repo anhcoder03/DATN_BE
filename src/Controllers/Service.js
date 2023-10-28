@@ -102,7 +102,6 @@ export const addService = async (req, res) => {
       });
     }
 
-    // Lấy dãy số cuối cùng từ cơ sở dữ liệu hoặc sử dụng biến để theo dõi
     const lastService = await Service.findOne({}, {}, { sort: { _id: -1 } });
     const serviceId = generateNextId(
       lastService ? lastService.serviceId : null,
