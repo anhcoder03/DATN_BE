@@ -25,15 +25,8 @@ const medicineExaminationSlipValidate = Joi.object({
   day_examination: Joi.date(),
   day_welcome: Joi.date(),
   day_request_cancel: Joi.date(),
-  mainTestResults: Joi.string(),
-  clinicalConclusion: Joi.string(),
-  diagnose: Joi.string(),
-  advice: Joi.string(),
   medicalHistory: Joi.string(),
-  re_examination: Joi.boolean(),
-  day_re_examination: Joi.date(),
   note: Joi.string(),
-  prescription: Joi.boolean(),
   prescriptionId: Joi.string(),
 });
 export default medicineExaminationSlipValidate;

@@ -192,7 +192,9 @@ export const signin = async (req, res) => {
       });
     }
 
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email }).populate([
+      { path: "role", select: "name" },
+    ]);
     if (!user) {
       return res.status(400).json({
         message: "Sai tài khoản đăng nhập!",

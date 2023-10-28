@@ -28,10 +28,10 @@ const MedicineSchema = new mongoose.Schema(
       // công dụng
       type: String,
     },
-    unit_import: {
-      // đơn vị nhập
-      type: String,
-    },
+    // unit_import: {
+    //   // đơn vị nhập
+    //   type: String,
+    // },
     unit_selling: {
       // đơn vị bán
       type: String,
@@ -39,11 +39,6 @@ const MedicineSchema = new mongoose.Schema(
     categoryId: {
       type: mongoose.Types.ObjectId,
       ref: "Category",
-    },
-    creator: {
-      // người tạo
-      type: mongoose.Types.ObjectId,
-      ref: "User",
     },
     origin: {
       // xuất xứ

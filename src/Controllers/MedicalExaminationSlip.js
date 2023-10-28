@@ -1,6 +1,15 @@
 import Customer from "../Models/Customer.js";
 import MedicalExaminationSlip from "../Models/MedicalExaminationSlip.js";
+import ServiceByExamination from "../Models/ServiceByExamination.js";
 import medicineExaminationSlipValidate from "../Schemas/MedicalExaminationSlip.js";
+
+function generateNextId(lastId) {
+  if (!lastId) return "DVK-001";
+  const lastNumber = parseInt(lastId.split("-")[1]);
+  const nextNumber = lastNumber + 1;
+  const nextId = `DVK-${nextNumber.toString().padStart(3, "0")}`;
+  return nextId;
+}
 
 export const getAllExamination = async (req, res) => {
   try {
@@ -123,15 +132,45 @@ export const createMedicalExaminationSlip = async (req, res) => {
       name: customerData.name,
       phone: customerData.phone,
     };
-    const medicine = await MedicalExaminationSlip.create({
-      ...req.body,
-      customer,
-      id: examinationId,
-    });
-    return res.json({
-      message: "Thêm sản phẩm thành công",
-      medicine,
-    });
+    if (req.body.status == "recetion") {
+      const examination = await MedicalExaminationSlip.create({
+        ...req.body,
+        customer,
+        id: examinationId,
+      });
+      const services = req.body.examinationServiceId;
+      for (let i = 0; i < services?.length; i++) {
+        const lastRecord = await ServiceByExamination.findOne().sort({
+          _id: -1,
+        });
+        console.log(lastRecord);
+        let newId = generateNextId(lastRecord ? lastRecord._id : null);
+        const serviceByExamination = new ServiceByExamination({
+          examinationId: examination._id,
+          service_examination: services[i],
+          doctorId: req.body.doctorId,
+          customerId: req.body.customerId,
+          staffId: req.body.staffId,
+          clinicId: req.body.clinicId,
+          id: newId,
+        });
+        await serviceByExamination.save();
+      }
+      return res.json({
+        message: "Tạo phiếu khám thành công",
+        examination,
+      });
+    } else {
+      const examination = await MedicalExaminationSlip.create({
+        ...req.body,
+        customer,
+        id: examinationId,
+      });
+      return res.json({
+        message: "Tạo phiếu khám thành công",
+        examination,
+      });
+    }
   } catch (error) {
     return res.status(404).json({
       message: error.message,
