@@ -1,6 +1,6 @@
-import Role from "../Models/Role.js";
 import Service from "../Models/Service.js";
 import serviceValidate from "../Schemas/Service.js";
+import generateNextId from "../Utils/generateNextId.js";
 
 export const getAllService = async (req, res) => {
   const {
@@ -8,7 +8,7 @@ export const getAllService = async (req, res) => {
     _limit = 10,
     _sort = "createdAt",
     _order = "asc",
-    _id,
+    _serviceId,
     _name,
     _status,
     _price,
@@ -25,8 +25,8 @@ export const getAllService = async (req, res) => {
   try {
     let query = {};
 
-    if (_id) {
-      query._id = _id;
+    if (_serviceId) {
+      query.serviceId = _serviceId;
     }
 
     if (_name) {
@@ -102,16 +102,16 @@ export const addService = async (req, res) => {
       });
     }
 
-    let serviceId = req.body._id;
-    if (!serviceId || serviceId === "") {
-      // Nếu không có mã ID, tạo mã mới bằng cách kết hợp mã KH và mã tự sinh
-      const timestamp = new Date().getTime();
-      serviceId = "DV" + timestamp.toString();
-    }
+    // Lấy dãy số cuối cùng từ cơ sở dữ liệu hoặc sử dụng biến để theo dõi
+    const lastService = await Service.findOne({}, {}, { sort: { _id: -1 } });
+    const serviceId = generateNextId(
+      lastService ? lastService.serviceId : null,
+      "DV"
+    );
 
     const services = await Service.create({
       ...req.body,
-      _id: serviceId,
+      serviceId,
     });
 
     return res.json({

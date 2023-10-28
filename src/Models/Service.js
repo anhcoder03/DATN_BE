@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 import mongoosePaginate from "mongoose-paginate-v2";
 const ServiceSchema = new mongoose.Schema(
   {
-    _id: {
+    serviceId: {
       type: String,
       required: true,
     },
@@ -25,7 +25,7 @@ const ServiceSchema = new mongoose.Schema(
 );
 
 ServiceSchema.index({
-  _id: "text",
+  serviceId: "text",
   name: "text",
   price: "text",
   status: "text",
