@@ -2,14 +2,7 @@ import Customer from "../Models/Customer.js";
 import MedicalExaminationSlip from "../Models/MedicalExaminationSlip.js";
 import ServiceByExamination from "../Models/ServiceByExamination.js";
 import medicineExaminationSlipValidate from "../Schemas/MedicalExaminationSlip.js";
-
-function generateNextId(lastId) {
-  if (!lastId) return "DVK-001";
-  const lastNumber = parseInt(lastId.split("-")[1]);
-  const nextNumber = lastNumber + 1;
-  const nextId = `DVK-${nextNumber.toString().padStart(3, "0")}`;
-  return nextId;
-}
+import generateNextId from "../Utils/generateNextId.js";
 
 export const getAllExamination = async (req, res) => {
   try {
@@ -144,7 +137,7 @@ export const createMedicalExaminationSlip = async (req, res) => {
           _id: -1,
         });
         console.log(lastRecord);
-        let newId = generateNextId(lastRecord ? lastRecord._id : null);
+        let newId = generateNextId(lastRecord ? lastRecord._id : null, "DVK");
         const serviceByExamination = new ServiceByExamination({
           examinationId: examination._id,
           service_examination: services[i],
