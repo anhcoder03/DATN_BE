@@ -48,9 +48,8 @@ const MedicalExaminationSlipSchema = new mongoose.Schema(
       ref: "User",
     },
     examinationServiceId: [
-      // dịch vụ khám
       {
-        type: mongoose.Types.ObjectId,
+        type: String,
         ref: "Service",
       },
     ],
@@ -58,12 +57,6 @@ const MedicalExaminationSlipSchema = new mongoose.Schema(
       // phòng khám
       type: mongoose.Types.ObjectId,
       ref: "Clinic",
-    },
-    examinationInvoiceId: {
-      // hoá đơn thanh toán
-      type: mongoose.Types.ObjectId,
-      // ref: "" //
-      default: null,
     },
     day_welcome: {
       // ngày tiếp đón
@@ -91,49 +84,14 @@ const MedicalExaminationSlipSchema = new mongoose.Schema(
       type: String, // ngày yêu cầu huỷ
       default: null,
     },
-    mainTestResults: {
-      // keets qua xet nghiem chinh
-      type: String,
-      default: null,
-    },
-    clinicalConclusion: {
-      // ket luan lam sang
-      type: String,
-      default: null,
-    },
-    diagnose: {
-      // chuẩn đoán
-      type: String,
-      default: null,
-    },
-    advice: {
-      // dặn dò
-      type: String,
-      default: null,
-    },
     medicalHistory: {
       // bệnh sử
-      type: String,
-      default: null,
-    },
-    re_examination: {
-      // hẹn tái khám
-      type: Boolean,
-      default: null,
-    },
-    day_re_examination: {
-      // ngày hẹn tái khám
       type: String,
       default: null,
     },
     note: {
       // ghi chú
       type: String,
-      default: null,
-    },
-    prescription: {
-      // có kê đơn hay không
-      type: Boolean,
       default: null,
     },
     prescriptionId: {

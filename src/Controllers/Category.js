@@ -5,7 +5,7 @@ export const getAllCategory = async (req, res) => {
   try {
     const {
       _page = 1,
-      _limit = 10,
+      _limit = 25,
       _sort = "createdAt",
       _order = "asc",
       search,

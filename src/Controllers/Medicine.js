@@ -19,6 +19,7 @@ const getAllMedicine = async (req, res) => {
       sort: {
         [_sort]: _order === "asc" ? 1 : -1,
       },
+      populate: [{ path: "categoryId" }],
     };
     if (search && search.trim() !== "") {
       query.$or = [{ name: { $regex: new RegExp(search, "i") } }];
@@ -46,7 +47,6 @@ const getAllMedicine = async (req, res) => {
 const getOneMedicine = async (req, res) => {
   try {
     const medicine = await Medicine.findById(req.params.id).populate([
-      "creator",
       "categoryId",
     ]);
     if (!medicine) {
