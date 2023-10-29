@@ -11,13 +11,14 @@ const ClinicSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: [
-        "active",
-        "stop",
-      ],
+      enum: ["active", "stop"],
     },
     description: {
       type: String,
+    },
+    doctorInClinic: {
+      type: mongoose.Types.ObjectId,
+      ref: "User",
     },
   },
   { versionKey: false, timestamps: true }

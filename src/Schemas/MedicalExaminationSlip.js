@@ -5,9 +5,7 @@ const medicineExaminationSlipValidate = Joi.object({
   doctorId: Joi.string().required().messages({
     "string.empty": "Bác sĩ khám không được để trống",
   }),
-  symptom: Joi.string().required().messages({
-    "string.empty": "Triệu chứng không được để trống",
-  }),
+  symptom: Joi.any(),
   status: Joi.string(),
   staffId: Joi.string().required().messages({
     "string.empty": "Nhân viên tiếp đón không được để trống",
@@ -15,9 +13,7 @@ const medicineExaminationSlipValidate = Joi.object({
   examinationServiceId: Joi.array().required().messages({
     "string.empty": "Chọn dịch vụ khám",
   }),
-  clinicId: Joi.string().required().messages({
-    "string.empty": "Chọn phòng khám",
-  }),
+  clinicId: Joi.any(),
   examinationInvoiceId: Joi.string(),
   day_booking: Joi.date(),
   day_cancel: Joi.date(),
@@ -25,8 +21,8 @@ const medicineExaminationSlipValidate = Joi.object({
   day_examination: Joi.date(),
   day_welcome: Joi.date(),
   day_request_cancel: Joi.date(),
-  medicalHistory: Joi.string(),
-  note: Joi.string(),
+  medicalHistory: Joi.any(),
+  note: Joi.any(),
   prescriptionId: Joi.string(),
   paymentStatus: Joi.string(),
 });

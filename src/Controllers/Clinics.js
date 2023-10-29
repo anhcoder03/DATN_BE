@@ -18,6 +18,7 @@ export const getAllClinic = async (req, res) => {
       sort: {
         [_sort]: _order === "asc" ? 1 : -1,
       },
+      populate: { path: "doctorInClinic", select: "name" },
     };
     if (_status) {
       query.status = _status;
@@ -45,7 +46,10 @@ export const getAllClinic = async (req, res) => {
 
 export const getOneClinic = async (req, res) => {
   try {
-    const clinic = await Clinics.findById(req.params.id);
+    const clinic = await Clinics.findById(req.params.id).populate({
+      path: "doctorInClinic",
+      select: "name",
+    });
     if (!clinic) {
       return res.status(400).json({
         message: "Tài nguyên không tồn tại !",

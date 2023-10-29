@@ -11,6 +11,7 @@ const clinicValidate = Joi.object({
     "string.empty": "Mô tả phòng khám không được để trống",
   }),
   createdAt: Joi.any(),
-  updatedAt: Joi.any()
+  updatedAt: Joi.any(),
+  doctorInClinic: Joi.any(),
 });
 export default clinicValidate;
