@@ -44,7 +44,7 @@ const ServiceByExaminationSchema = new mongoose.Schema(
     },
     clinicId: {
       // phòng khám
-      type: mongoose.Types.ObjectId,
+      type: String,
       ref: "Clinic",
     },
     status: {
