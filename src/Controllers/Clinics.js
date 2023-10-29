@@ -20,14 +20,13 @@ export const getAllClinic = async (req, res) => {
       },
     };
     if (_status) {
-      query.status = _status
+      query.status = _status;
     }
     if (search && search.trim() !== "") {
-      query.name = { $regex: new RegExp(search, "i") }
+      query.name = { $regex: new RegExp(search, "i") };
     }
     console.log("query", query);
     const clinics = await Clinics.paginate(query, options);
-
     if (!clinics) {
       return res.status(400).json({
         message: "Tài nguyên không tồn tại !",
@@ -80,8 +79,7 @@ export const addClinic = async (req, res) => {
       // Nếu không có mã ID, tạo mã mới bằng cách kết hợp mã KH và mã tự sinh
       const timestamp = new Date().getTime();
       clinicId = "PK" + timestamp.toString();
-    }
-    else {
+    } else {
       const isExiting = await Clinics.findById(clinicId);
       if (isExiting) {
         return res.status(403).json({

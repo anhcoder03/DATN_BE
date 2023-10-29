@@ -28,5 +28,6 @@ const medicineExaminationSlipValidate = Joi.object({
   medicalHistory: Joi.string(),
   note: Joi.string(),
   prescriptionId: Joi.string(),
+  paymentStatus: Joi.string(),
 });
 export default medicineExaminationSlipValidate;

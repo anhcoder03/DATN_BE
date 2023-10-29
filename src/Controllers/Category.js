@@ -22,7 +22,7 @@ export const getAllCategory = async (req, res) => {
       query.name = { $regex: new RegExp(search, "i") };
     }
     const categories = await Category.paginate(query, options);
-    if (!categories || categories.docs.length === 0) {
+    if (!categories) {
       return res.status(400).json({
         message: "Danh sách danh mục trống!",
       });

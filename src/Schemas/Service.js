@@ -14,5 +14,6 @@ const serviceValidate = Joi.object({
   status: Joi.number().default(1),
   createdAt: Joi.any(),
   updatedAt: Joi.any(),
+  serviceId: Joi.string(),
 });
 export default serviceValidate;

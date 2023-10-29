@@ -139,6 +139,12 @@ const CustomerSchema = new mongoose.Schema(
       type: mongoose.Types.ObjectId,
       ref: "User",
     },
+    examination_history: [
+      {
+        type: String,
+        ref: "MedicalExaminationSlip",
+      },
+    ],
   },
   { versionKey: false, timestamps: true }
 );
