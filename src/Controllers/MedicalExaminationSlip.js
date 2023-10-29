@@ -131,12 +131,16 @@ export const createMedicalExaminationSlip = async (req, res) => {
         customer,
         id: examinationId,
       });
+
+      await Customer.findByIdAndUpdate(customerId, {
+        $addToSet: { examination_history: examination._id },
+      });
+
       const services = req.body.examinationServiceId;
       for (let i = 0; i < services?.length; i++) {
         const lastRecord = await ServiceByExamination.findOne().sort({
           _id: -1,
         });
-        console.log(lastRecord);
         let newId = generateNextId(lastRecord ? lastRecord._id : null, "DVK");
         const serviceByExamination = new ServiceByExamination({
           examinationId: examination._id,
@@ -146,6 +150,7 @@ export const createMedicalExaminationSlip = async (req, res) => {
           staffId: req.body.staffId,
           clinicId: req.body.clinicId,
           id: newId,
+          paymentStatus: req.body.paymentStatus,
         });
         await serviceByExamination.save();
       }
@@ -158,6 +163,9 @@ export const createMedicalExaminationSlip = async (req, res) => {
         ...req.body,
         customer,
         id: examinationId,
+      });
+      await Customer.findByIdAndUpdate(customerId, {
+        $addToSet: { examination_history: examination._id },
       });
       return res.json({
         message: "Tạo phiếu khám thành công",
@@ -203,12 +211,16 @@ export const deleteExamination = async (req, res) => {
     const examination = await MedicalExaminationSlip.findByIdAndRemove(
       req.params.id
     );
-
     if (!examination) {
       return res.status(404).json({
         message: "Phiếu khám không tồn tại!",
       });
     }
+    await Customer.findByIdAndUpdate(examination.customerId, {
+      $pull: {
+        examination_history: examination._id,
+      },
+    });
     return res.json({
       message: "Xóa phiếu khám thành công!",
       examination,

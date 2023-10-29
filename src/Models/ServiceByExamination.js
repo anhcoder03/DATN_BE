@@ -13,6 +13,7 @@ const ServiceByExaminationSchema = new mongoose.Schema(
     paymentStatus: {
       type: String,
       enum: ["paid", "unpaid"],
+      default: "unpaid",
     },
     service_examination: {
       type: mongoose.Types.ObjectId,

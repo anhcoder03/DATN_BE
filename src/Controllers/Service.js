@@ -8,45 +8,31 @@ export const getAllService = async (req, res) => {
     _limit = 10,
     _sort = "createdAt",
     _order = "asc",
-    _serviceId,
-    _name,
+    search,
     _status,
-    _price,
   } = req.query;
 
   const options = {
     page: _page,
     limit: _limit,
     sort: {
-      [_sort]: _order === "asc" ? 1 : -1,
+      [_sort]: _order === "desc" ? 1 : -1,
     },
   };
 
   try {
     let query = {};
-
-    if (_serviceId) {
-      query.serviceId = _serviceId;
+    if (search && search.trim() !== "") {
+      query.$or = [
+        { name: { $regex: new RegExp(search, "i") } },
+        { serviceId: search },
+      ];
     }
-
-    if (_name) {
-      query.name = _name;
-    }
-
-    if (_price) {
-      query.price = _price;
-    }
-
     if (_status) {
       query.status = _status;
     }
 
     const services = await Service.paginate(query, options);
-    if (!services || !services.docs.length) {
-      return res.status(400).json({
-        message: "Tài nguyên không tồn tại!",
-      });
-    }
     return res.json({
       message: "Lấy tài nguyên thành công!",
       services,
