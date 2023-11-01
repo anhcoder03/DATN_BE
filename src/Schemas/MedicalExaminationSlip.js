@@ -2,17 +2,10 @@ import Joi from "joi";
 const medicineExaminationSlipValidate = Joi.object({
   _id: Joi.any(),
   customerId: Joi.string(),
-  doctorId: Joi.string().required().messages({
-    "string.empty": "Bác sĩ khám không được để trống",
-  }),
+  doctorId: Joi.any(),
   symptom: Joi.any(),
   status: Joi.string(),
-  staffId: Joi.string().required().messages({
-    "string.empty": "Nhân viên tiếp đón không được để trống",
-  }),
-  examinationServiceId: Joi.array().required().messages({
-    "string.empty": "Chọn dịch vụ khám",
-  }),
+  staffId: Joi.any(),
   clinicId: Joi.any(),
   examinationInvoiceId: Joi.string(),
   day_booking: Joi.date(),

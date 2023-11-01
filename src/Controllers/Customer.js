@@ -27,7 +27,6 @@ export const getAllCustomers = async (req, res) => {
       query.gender = _gender;
     }
     const options = {
-      page: _page,
       limit: _limit,
       sort: {
         [_sort]: _order === "asc" ? 1 : -1,
@@ -51,7 +50,9 @@ export const getAllCustomers = async (req, res) => {
 };
 export const getOneCustomer = async (req, res) => {
   try {
-    const customer = await Customer.findById(req.params.id);
+    const customer = await Customer.findById(req.params.id).populate(
+      "examination_history"
+    );
     if (!customer) {
       return res.status(404).json({
         message: "Khách hàng không tồn tại!",

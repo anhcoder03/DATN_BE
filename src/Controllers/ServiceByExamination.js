@@ -46,3 +46,93 @@ export const getAllByIdExamination = async (req, res) => {
     });
   }
 };
+
+export const getAllServiceByExamination = async (req, res) => {
+  try {
+    const {
+      _limit = 25,
+      _page = 1,
+      _sort = "createdAt",
+      _order = "desc",
+      search,
+      status,
+      paymentStatus,
+      doctorId,
+      staffId,
+      clinicId,
+      createdAt,
+    } = req.query;
+    let query = {};
+
+    const searchRegex = new RegExp(search, "i");
+    if (search && search.trim() !== "") {
+      query._id = { $regex: searchRegex };
+    }
+    if (doctorId) {
+      query.doctorId = doctorId;
+    }
+    if (staffId) {
+      query.staffId = staffId;
+    }
+    if (clinicId) {
+      query.clinicId = clinicId;
+    }
+    if (status) {
+      query.status = status;
+    }
+    if (paymentStatus) {
+      query.paymentStatus = paymentStatus;
+    }
+    if (createdAt) {
+      query.createdAt = createdAt;
+    }
+    const options = {
+      page: _page,
+      limit: _limit,
+      sort: {
+        [_sort]: _order === "asc" ? 1 : -1,
+      },
+      populate: [
+        { path: "customerId" },
+        { path: "doctorId", select: "name" },
+        { path: "staffId", select: "name" },
+        { path: "service_examination" },
+        { path: "clinicId" },
+      ],
+    };
+
+    const serviceByExaminations = await ServiceByExamination.paginate(
+      query,
+      options
+    );
+    return res.status(200).json({
+      message: "Lấy tài nguyên thành công !",
+      serviceByExaminations,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: "Lỗi: " + error.message,
+    });
+  }
+};
+
+export const deleteServiceByExam = async (req, res) => {
+  try {
+    const designation = await ServiceByExamination.findByIdAndRemove(
+      req.params.id
+    );
+    if (!designation) {
+      return res.status(404).json({
+        message: "Dịch vụ khám không tồn tại!",
+      });
+    }
+    return res.json({
+      message: "Xóa dịch vụ khám thành công!",
+      designation,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: "Lỗi khi xóa phiếu khám: " + error.message,
+    });
+  }
+};

@@ -10,7 +10,7 @@ export const getAllExamination = async (req, res) => {
       _page = 1,
       _limit = 10,
       _sort = "createdAt",
-      _order = "asc",
+      _order = "desc",
       status,
       search,
       doctorId,
@@ -33,7 +33,6 @@ export const getAllExamination = async (req, res) => {
         { path: "doctorId" },
         { path: "staffId" },
         { path: "clinicId" },
-        { path: "examinationServiceId" },
       ],
     };
     const searchRegex = new RegExp(search, "i");
@@ -43,6 +42,7 @@ export const getAllExamination = async (req, res) => {
           "customer.phone": { $regex: searchRegex },
         },
         { "customer.name": { $regex: searchRegex } },
+        { customerId: { $regex: searchRegex } },
         { _id: { $regex: searchRegex } },
       ];
     }
@@ -111,23 +111,18 @@ export const createMedicalExaminationSlip = async (req, res) => {
         });
       }
     }
-    const { error } = medicineExaminationSlipValidate.validate(req.body, {
-      abortEarly: false,
-    });
-    if (error) {
-      return res.status(401).json({
-        message: error.details[0].message,
-      });
-    }
+
     const customerData = await Customer.findById(customerId);
     const customer = {
       _id: customerData._id,
       name: customerData.name,
       phone: customerData.phone,
     };
+    const data = req.body;
+    const { examinationServiceId, ...rest } = data;
     if (req.body.status == "recetion") {
       const examination = await MedicalExaminationSlip.create({
-        ...req.body,
+        ...rest,
         customer,
         id: examinationId,
       });
@@ -135,8 +130,7 @@ export const createMedicalExaminationSlip = async (req, res) => {
       await Customer.findByIdAndUpdate(customerId, {
         $addToSet: { examination_history: examination._id },
       });
-
-      const services = req.body.examinationServiceId;
+      const services = examinationServiceId;
       for (let i = 0; i < services?.length; i++) {
         const lastRecord = await ServiceByExamination.findOne().sort({
           _id: -1,
@@ -160,7 +154,7 @@ export const createMedicalExaminationSlip = async (req, res) => {
       });
     } else {
       const examination = await MedicalExaminationSlip.create({
-        ...req.body,
+        ...rest,
         customer,
         id: examinationId,
       });
@@ -181,23 +175,17 @@ export const createMedicalExaminationSlip = async (req, res) => {
 
 export const getOne = async (req, res) => {
   try {
-    const medicine = await MedicalExaminationSlip.findById(
+    const examination = await MedicalExaminationSlip.findById(
       req.params.id
-    ).populate([
-      "customerId",
-      "doctorId",
-      "staffId",
-      "clinicId",
-      "examinationServiceId",
-    ]);
-    if (!medicine) {
+    ).populate(["customerId", "doctorId", "staffId", "clinicId"]);
+    if (!examination) {
       return res.status(400).json({
         message: "Phiếu khám không tồn tại!",
       });
     }
     return res.json({
       message: "Lấy phiếu khám thành công!",
-      medicine,
+      examination,
     });
   } catch (error) {
     return res.status(404).json({
@@ -228,6 +216,98 @@ export const deleteExamination = async (req, res) => {
   } catch (error) {
     return res.status(500).json({
       message: "Lỗi khi xóa phiếu khám: " + error.message,
+    });
+  }
+};
+
+export const updateExamination = async (req, res) => {
+  try {
+    const id = req.params.id;
+    const services = req.body.examinationServiceId;
+    const dataExam = await MedicalExaminationSlip.findById(id);
+    if (dataExam?.customerId !== req.body.customerId) {
+      const customerData = await Customer.findById(req.body.customerId);
+      const customer = {
+        _id: customerData._id,
+        name: customerData.name,
+        phone: customerData.phone,
+      };
+      if (services) {
+        const examination = await MedicalExaminationSlip.findByIdAndUpdate(id, {
+          ...req.body,
+          customer,
+        });
+        for (let i = 0; i < services?.length; i++) {
+          const lastRecord = await ServiceByExamination.findOne().sort({
+            _id: -1,
+          });
+          let newId = generateNextId(lastRecord ? lastRecord._id : null, "DVK");
+          const serviceByExamination = new ServiceByExamination({
+            examinationId: examination._id,
+            service_examination: services[i],
+            doctorId: req.body.doctorId,
+            customerId: req.body.customerId,
+            staffId: req.body.staffId,
+            clinicId: req.body.clinicId,
+            id: newId,
+            paymentStatus: req.body.paymentStatus,
+          });
+          await serviceByExamination.save();
+        }
+        return res.json({
+          message: "Cập nhật phiếu khám thành công",
+          examination,
+        });
+      } else {
+        const examination = await MedicalExaminationSlip.findByIdAndUpdate(id, {
+          ...req.body,
+        });
+
+        return res.json({
+          message: "Cập nhật khách hàng thành công!",
+          examination,
+        });
+      }
+    } else {
+      if (services) {
+        const examination = await MedicalExaminationSlip.findByIdAndUpdate(id, {
+          ...req.body,
+        });
+        for (let i = 0; i < services?.length; i++) {
+          const lastRecord = await ServiceByExamination.findOne().sort({
+            _id: -1,
+          });
+          let newId = generateNextId(lastRecord ? lastRecord._id : null, "DVK");
+          const serviceByExamination = new ServiceByExamination({
+            examinationId: examination._id,
+            service_examination: services[i],
+            doctorId: req.body.doctorId,
+            customerId: req.body.customerId,
+            staffId: req.body.staffId,
+            clinicId: req.body.clinicId,
+            id: newId,
+            paymentStatus: req.body.paymentStatus,
+          });
+          await serviceByExamination.save();
+        }
+        return res.json({
+          message: "Cập nhật phiếu khám thành công",
+          examination,
+        });
+      } else {
+        const examination = await MedicalExaminationSlip.findByIdAndUpdate(id, {
+          ...req.body,
+        });
+
+        return res.json({
+          message: "Cập nhật phiếu khám thành công!",
+          examination,
+        });
+      }
+    }
+  } catch (error) {
+    return res.status(500).json({
+      message: "Lỗi khi cập nhật khách hàng: " + error.message,
     });
   }
 };
