@@ -47,12 +47,6 @@ const MedicalExaminationSlipSchema = new mongoose.Schema(
       type: mongoose.Types.ObjectId,
       ref: "User",
     },
-    examinationServiceId: [
-      {
-        type: String,
-        ref: "Service",
-      },
-    ],
     clinicId: {
       // phòng khám
       type: String,

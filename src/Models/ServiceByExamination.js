@@ -16,7 +16,7 @@ const ServiceByExaminationSchema = new mongoose.Schema(
       default: "unpaid",
     },
     service_examination: {
-      type: mongoose.Types.ObjectId,
+      type: String,
       ref: "Service",
     },
     mainResults: {
@@ -49,7 +49,8 @@ const ServiceByExaminationSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ["waiting", "done"],
+      enum: ["waiting", "done", "canceled"],
+      default: "waiting",
     },
     day_run: {
       type: String,
