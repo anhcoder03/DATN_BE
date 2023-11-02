@@ -175,17 +175,17 @@ export const createMedicalExaminationSlip = async (req, res) => {
 
 export const getOne = async (req, res) => {
   try {
-    const examination = await MedicalExaminationSlip.findById(
+    const medicalExaminationSlip = await MedicalExaminationSlip.findById(
       req.params.id
     ).populate(["customerId", "doctorId", "staffId", "clinicId"]);
-    if (!examination) {
+    if (!medicalExaminationSlip) {
       return res.status(400).json({
         message: "Phiếu khám không tồn tại!",
       });
     }
     return res.json({
       message: "Lấy phiếu khám thành công!",
-      examination,
+      medicalExaminationSlip,
     });
   } catch (error) {
     return res.status(404).json({
