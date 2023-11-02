@@ -115,6 +115,32 @@ export const getAllServiceByExamination = async (req, res) => {
     });
   }
 };
+export const getOne = async (req, res) => {
+  try {
+    const designation = await ServiceByExamination.findById(
+      req.params.id
+    ).populate([
+      { path: "customerId" },
+      { path: "doctorId", select: "name" },
+      { path: "staffId", select: "name" },
+      { path: "service_examination" },
+      { path: "clinicId" },
+    ]);
+    if (!designation) {
+      return res.status(400).json({
+        message: "Dịch vụ phiếu khám không tồn tại!",
+      });
+    }
+    return res.json({
+      message: "Lấy dịch vụ phiếu khám thành công!",
+      designation,
+    });
+  } catch (error) {
+    return res.status(404).json({
+      message: error.message,
+    });
+  }
+};
 
 export const deleteServiceByExam = async (req, res) => {
   try {
