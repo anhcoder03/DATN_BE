@@ -225,7 +225,7 @@ export const updateExamination = async (req, res) => {
     const id = req.params.id;
     const services = req.body.examinationServiceId;
     const dataExam = await MedicalExaminationSlip.findById(id);
-    if (dataExam?.customerId !== req.body.customerId) {
+    if (req.body.customerId && dataExam?.customerId !== req.body.customerId) {
       const customerData = await Customer.findById(req.body.customerId);
       const customer = {
         _id: customerData._id,
