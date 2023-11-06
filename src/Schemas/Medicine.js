@@ -44,5 +44,7 @@ const medicineValidate = Joi.object({
   }),
   status: Joi.any(),
   image: Joi.any(),
+  createdAt: Joi.any(),
+  updatedAt: Joi.any(),
 });
 export default medicineValidate;
