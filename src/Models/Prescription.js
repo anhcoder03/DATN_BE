@@ -33,20 +33,26 @@ const PrescriptionSchema = new Schema(
           ref: "Medicine",
         },
         quantity: Number,
-        price: Number,
+        unit_selling: String, // đơn vị xuất kho
+        unit_using: String, // đơn vị sử dụng
+        dosage: String, // liều dùng
+        timesUsePerDay: Number, // số lần sử dụng/ngày
+        how_using: String, // cách dùng
+        routeOfDrug: String, // đường dùng thuốc
+        // price: Number,
       },
     ],
-    totalAmount: Number,
-    paymentStatus: {
-      type: String,
-      enum: ["Đã thanh toán", "Chưa thanh toán"],
-      default: "Chưa thanh toán",
-    },
-    paymentMethod: {
-      type: String,
-      enum: ["Chuyển khoản", "Tiền mặt"],
-      default: "Tiền mặt",
-    },
+    // totalAmount: Number,
+    // paymentStatus: {
+    //   type: String,
+    //   enum: ["Đã thanh toán", "Chưa thanh toán"],
+    //   default: "Chưa thanh toán",
+    // },
+    // paymentMethod: {
+    //   type: String,
+    //   enum: ["Chuyển khoản", "Tiền mặt"],
+    //   default: "Tiền mặt",
+    // },
     note: {
       type: String,
       default: "Không có ghi chú",

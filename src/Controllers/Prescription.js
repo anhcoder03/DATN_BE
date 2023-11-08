@@ -1,8 +1,11 @@
 import MedicalExaminationSlip from "../Models/MedicalExaminationSlip.js";
 import User from "../Models/User.js";
 import Prescription from "../Models/Prescription.js";
+import Medicine from "../Models/Medicine.js";
 import PrescriptionValidate from "../Schemas/Prescription.js";
 import generateNextId from "../Utils/generateNextId.js";
+import handleTotalOrder from "../Utils/handleTotalAmount.js";
+import Order from "../Models/Order.js";
 
 // get all Prescription
 export const getAllPrescription = async (req, res) => {
@@ -23,7 +26,7 @@ export const getAllPrescription = async (req, res) => {
     populate: [
       { path: "doctorId" },
       { path: "medicalExaminationSlipId" },
-      { path: "medicines.medicineId" },
+      { path: "medicines.medicineId", select: "_id name price" },
     ],
   };
 
@@ -111,6 +114,7 @@ export const getOnePrescription = async (req, res) => {
 
 // create new Prescription
 export const createPrescription = async (req, res) => {
+  const { doctorId, medicalExaminationSlipId, medicines } = req.body;
   try {
     const { error } = PrescriptionValidate.validate(req.body, {
       abortEarly: false,
@@ -125,15 +129,14 @@ export const createPrescription = async (req, res) => {
     // create customer
     let customer = "";
     const medicalExaminationSlip = await MedicalExaminationSlip.findById(
-      req.body.medicalExaminationSlipId
+      medicalExaminationSlipId
     );
     if (medicalExaminationSlip && medicalExaminationSlip.customer) {
       customer = medicalExaminationSlip.customer;
     }
-
     // create doctor
     let doctor = "";
-    const user = await User.findById(req.body.doctorId);
+    const user = await User.findById(doctorId);
     if (user) {
       doctor = {
         _id: user._id,
@@ -158,6 +161,43 @@ export const createPrescription = async (req, res) => {
       doctor,
     });
 
+    // Tạo mảng mới để chứa thông tin medicine với giá match với model Order
+    const orderMedicines = [];
+
+    for (const medicineData of medicines) {
+      const medicine = await Medicine.findById(medicineData.medicineId);
+
+      if (medicine) {
+        orderMedicines.push({
+          medicineId: medicineData.medicineId,
+          quantity: medicineData.quantity,
+          price: medicine.price,
+          totalPrice: medicine.price * medicineData.quantity,
+        });
+      }
+    }
+
+    // Custom Id Order
+    const lastOrder = await Order.findOne({}, {}, { sort: { _id: -1 } });
+
+    const orderId = generateNextId(lastOrder ? lastOrder._id : null, "DH");
+
+    // Tạo Order
+    const newOrder = {
+      id: orderId,
+      customer,
+      customerId: medicalExaminationSlip.customerId,
+      prescriptionId: prescription._id,
+      medicines: orderMedicines,
+      totalAmount: handleTotalOrder(orderMedicines),
+      orderType: "Kê đơn",
+      paymentStatus: "Chưa thanh toán",
+      paymentMethod: "Tiền mặt",
+      note: prescription.note,
+    };
+
+    await Order.create(newOrder);
+
     if (!prescription) {
       return res.status(400).json({
         message: "Không có dữ liệu Kê đơn để thêm!",
@@ -179,6 +219,7 @@ export const createPrescription = async (req, res) => {
 
 // update new Prescription
 export const updatePrescription = async (req, res) => {
+  const { doctorId, medicalExaminationSlipId, medicines } = req.body;
   const { id } = req.params;
   try {
     const { error } = PrescriptionValidate.validate(req.body, {
@@ -191,9 +232,64 @@ export const updatePrescription = async (req, res) => {
       });
     }
 
-    const prescription = await Prescription.findByIdAndUpdate(id, req.body, {
-      new: true,
-    });
+    // create customer
+    let customer = "";
+    const medicalExaminationSlip = await MedicalExaminationSlip.findById(
+      medicalExaminationSlipId
+    );
+    if (medicalExaminationSlip && medicalExaminationSlip.customer) {
+      customer = medicalExaminationSlip.customer;
+    }
+    // create doctor
+    let doctor = "";
+    const user = await User.findById(doctorId);
+    if (user) {
+      doctor = {
+        _id: user._id,
+        name: user.name,
+      };
+    }
+
+    const prescription = await Prescription.findByIdAndUpdate(
+      id,
+      { ...req.body, customer, doctor },
+      {
+        new: true,
+      }
+    );
+
+    // Tạo mảng mới để chứa thông tin medicine với giá match với model Order
+    const orderMedicines = [];
+
+    for (const medicineData of medicines) {
+      const medicine = await Medicine.findById(medicineData.medicineId);
+
+      if (medicine) {
+        orderMedicines.push({
+          medicineId: medicineData.medicineId,
+          quantity: medicineData.quantity,
+          price: medicine.price,
+          totalPrice: medicine.price * medicineData.quantity,
+        });
+      }
+    }
+
+    // Tạo Order
+    const newOrder = {
+      customer,
+      customerId: medicalExaminationSlip.customerId,
+      prescriptionId: prescription._id,
+      medicines: orderMedicines,
+      totalAmount: handleTotalOrder(orderMedicines),
+      orderType: "Kê đơn",
+      paymentStatus: "Chưa thanh toán",
+      paymentMethod: "Tiền mặt",
+      note: prescription.note,
+    };
+
+    const order = await Order.findOne({ prescriptionId: id });
+    await Order.findByIdAndUpdate(order._id, newOrder);
+
     if (!prescription) {
       return res.status(400).json({
         message: "Không có dữ liệu Kê đơn để cập nhật!",

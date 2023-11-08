@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { uploadCloud } from "../Middlewares/uploadImage.js";
+import { uploadCloud } from "../Middlewares/UploadImage.js";
 import {
   deleteImage,
   updateImage,

@@ -15,6 +15,10 @@ const OrderSchema = new Schema(
       name: String,
       phone: String,
     },
+    prescriptionId: {
+      type: String,
+      ref: "Prescription",
+    },
     medicines: [
       {
         medicineId: {
@@ -23,6 +27,7 @@ const OrderSchema = new Schema(
         },
         quantity: Number,
         price: Number,
+        totalPrice: Number,
       },
     ],
     orderType: {
