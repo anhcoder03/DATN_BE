@@ -58,7 +58,7 @@ export const getAllExamination = async (req, res) => {
     if (clinicId) {
       query.clinicId = clinicId;
     }
-    console.log(query);
+
     const medicalExaminationSlips = await MedicalExaminationSlip.paginate(
       query,
       options

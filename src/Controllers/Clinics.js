@@ -26,7 +26,6 @@ export const getAllClinic = async (req, res) => {
     if (search && search.trim() !== "") {
       query.name = { $regex: new RegExp(search, "i") };
     }
-    console.log("query", query);
     const clinics = await Clinics.paginate(query, options);
     if (!clinics) {
       return res.status(400).json({

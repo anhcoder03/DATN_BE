@@ -90,7 +90,6 @@ export const updateUser = async (req, res) => {
   try {
     const id = req.params.id;
     const { role } = req.body;
-    console.log(role);
     const { error } = userValidate.validate(req.body, {
       abortEarly: false,
     });

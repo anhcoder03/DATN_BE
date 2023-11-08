@@ -1,8 +1,9 @@
+import MedicalExaminationSlip from "../Models/MedicalExaminationSlip.js";
+import User from "../Models/User.js";
 import Prescription from "../Models/Prescription.js";
-import PrescriptionDetail from "../Models/PrescriptionDetail.js";
 import PrescriptionValidate from "../Schemas/Prescription.js";
+import generateNextId from "../Utils/generateNextId.js";
 
-// ------------- PRESCRIPTION-------------------------
 // get all Prescription
 export const getAllPrescription = async (req, res) => {
   const {
@@ -10,8 +11,7 @@ export const getAllPrescription = async (req, res) => {
     _limit = 10,
     _sort = "createdAt",
     _order = "desc",
-    _id,
-    _customerId,
+    search,
   } = req.query;
 
   const options = {
@@ -22,33 +22,59 @@ export const getAllPrescription = async (req, res) => {
     },
     populate: [
       { path: "doctorId" },
-      { path: "customerId" },
-      { path: "staffId" },
+      { path: "medicalExaminationSlipId" },
+      { path: "medicines.medicineId" },
     ],
   };
 
   try {
     let query = {};
 
-    if (_id) {
-      query._id = _id;
-    }
-
-    if (_customerId) {
-      query.customerId = _customerId;
+    const searchRegex = new RegExp(search, "i");
+    if (search && search.trim() !== "") {
+      query.$or = [
+        {
+          "customer._id": { $regex: searchRegex },
+        },
+        {
+          "customer.name": { $regex: searchRegex },
+        },
+        {
+          "customer.phone": { $regex: searchRegex },
+        },
+        {
+          "doctor._id": { $regex: searchRegex },
+        },
+        {
+          "doctor.name": { $regex: searchRegex },
+        },
+        { medicalExaminationSlipId: { $regex: searchRegex } },
+        { _id: { $regex: searchRegex } },
+        { doctorId: { $regex: searchRegex } },
+      ];
     }
 
     const prescriptions = await Prescription.paginate(query, options);
 
     if (!prescriptions || prescriptions.docs.length === 0) {
       return res.status(400).json({
-        message: "Không tìm thấy danh sách Đơn thuốc!",
+        message: "Không tìm thấy danh sách Kê đơn!",
       });
     }
 
+    const pojoPrescriptions = prescriptions.docs.map((doc) => doc.toObject());
+
+    pojoPrescriptions.forEach((doc) => {
+      delete doc.customer;
+      delete doc.doctor;
+    });
+
     return res.status(200).json({
-      message: "Lấy danh sách Đơn thuốc thành công!",
-      prescriptions,
+      message: "Lấy danh sách Kê đơn thành công!",
+      prescriptions: {
+        ...prescriptions,
+        docs: pojoPrescriptions,
+      },
     });
   } catch (error) {
     return res.status(404).json({
@@ -63,17 +89,17 @@ export const getOnePrescription = async (req, res) => {
   try {
     const prescription = await Prescription.findById(id)
       .populate("doctorId")
-      .populate("customerId")
-      .populate("staffId");
+      .populate("medicalExaminationSlipId")
+      .populate("medicines.medicineId");
 
     if (!prescription) {
       return res.status(400).json({
-        message: "Không tìm thấy Đơn thuốc!",
+        message: "Không tìm thấy dữ liệu Kê đơn!",
       });
     }
 
     return res.status(200).json({
-      message: "Tìm Đơn thuốc thành công!",
+      message: "Tìm dữ liệu Kê đơn thành công!",
       prescription,
     });
   } catch (error) {
@@ -85,15 +111,6 @@ export const getOnePrescription = async (req, res) => {
 
 // create new Prescription
 export const createPrescription = async (req, res) => {
-  const {
-    doctorId,
-    customerId,
-    staffId,
-    totalAmount,
-    status,
-    paymentMethod,
-    medicines,
-  } = req.body;
   try {
     const { error } = PrescriptionValidate.validate(req.body, {
       abortEarly: false,
@@ -105,37 +122,53 @@ export const createPrescription = async (req, res) => {
       });
     }
 
-    // Custom prescriptionId
-    let prescriptionId = req.body._id;
-    if (!prescriptionId) {
-      const timestamp = new Date().getTime();
-      prescriptionId = "DT" + timestamp.toString();
+    // create customer
+    let customer = "";
+    const medicalExaminationSlip = await MedicalExaminationSlip.findById(
+      req.body.medicalExaminationSlipId
+    );
+    if (medicalExaminationSlip && medicalExaminationSlip.customer) {
+      customer = medicalExaminationSlip.customer;
     }
 
+    // create doctor
+    let doctor = "";
+    const user = await User.findById(req.body.doctorId);
+    if (user) {
+      doctor = {
+        _id: user._id,
+        name: user.name,
+      };
+    }
+
+    const lastPrescription = await Prescription.findOne(
+      {},
+      {},
+      { sort: { _id: -1 } }
+    );
+    const prescriptionId = generateNextId(
+      lastPrescription ? lastPrescription._id : null,
+      "KD"
+    );
+
     const prescription = await Prescription.create({
-      doctorId,
-      customerId,
-      staffId,
-      totalAmount,
-      status,
-      paymentMethod,
+      ...req.body,
       _id: prescriptionId,
+      customer,
+      doctor,
     });
+
     if (!prescription) {
       return res.status(400).json({
-        message: "Không có dữ liệu Đơn thuốc để thêm!",
+        message: "Không có dữ liệu Kê đơn để thêm!",
       });
     }
 
-    const prescrirptionDetail = await PrescriptionDetail.create({
-      prescriptionId: prescription._id,
-      medicines,
-    });
-
+    prescription.customer = undefined;
+    prescription.doctor = undefined;
     return res.status(200).json({
-      message: "Tạo Đơn thuốc thành công!",
+      message: "Kê đơn thành công!",
       prescription,
-      prescrirptionDetail,
     });
   } catch (error) {
     return res.status(404).json({
@@ -146,8 +179,6 @@ export const createPrescription = async (req, res) => {
 
 // update new Prescription
 export const updatePrescription = async (req, res) => {
-  const { medicines } = req.body;
-
   const { id } = req.params;
   try {
     const { error } = PrescriptionValidate.validate(req.body, {
@@ -165,20 +196,12 @@ export const updatePrescription = async (req, res) => {
     });
     if (!prescription) {
       return res.status(400).json({
-        message: "Không có dữ liệu Đơn thuốc để cập nhật!",
+        message: "Không có dữ liệu Kê đơn để cập nhật!",
       });
     }
 
-    // tìm ra prescription detail
-    await PrescriptionDetail.findOneAndUpdate(
-      {
-        prescriptionId: prescription._id,
-      },
-      { prescriptionId: prescription._id, medicines }
-    );
-
     return res.status(200).json({
-      message: "Cập nhật Đơn thuốc thành công!",
+      message: "Cập nhật Kê đơn thành công!",
       prescription,
     });
   } catch (error) {
@@ -199,11 +222,7 @@ export const deletePrescription = async (req, res) => {
       });
     }
 
-    const prescriptionDelete = Prescription.findByIdAndDelete(id);
-    const prescriptionDetailDelete = PrescriptionDetail.findOneAndDelete({
-      prescriptionId: prescription._id,
-    });
-    await Promise.all([prescriptionDelete, prescriptionDetailDelete]);
+    await Prescription.findByIdAndDelete(id);
 
     return res.status(200).json({
       message: "Xóa Đơn thuốc thành công!",
@@ -211,57 +230,6 @@ export const deletePrescription = async (req, res) => {
   } catch (error) {
     return res.status(500).json({
       message: `Đã xảy ra lỗi: ${error.message}!`,
-    });
-  }
-};
-
-// ------------- PRESCRIPTION DETAIL -------------------------
-
-// get all Prescription Detail
-export const getAllPrescriptionDetail = async (req, res) => {
-  try {
-    const prescriptionDetails = await PrescriptionDetail.find({});
-
-    if (!prescriptionDetails || prescriptionDetails.length === 0) {
-      return res.status(400).json({
-        message: "Không tìm thấy danh sách Chi tiết Đơn thuốc!",
-      });
-    }
-
-    return res.status(200).json({
-      message: "Lấy danh sách Chi tiết đơn thuốc thành công!",
-      prescriptionDetails,
-    });
-  } catch (error) {
-    return res.status(404).json({
-      message: `Đã xảy ra lỗi: ${error.message}`,
-    });
-  }
-};
-
-// get one Prescription Detail
-export const getOnePrescriptionDetail = async (req, res) => {
-  const { prescriptionId } = req.params;
-  try {
-    const prescriptionDetail = await PrescriptionDetail.findOne({
-      prescriptionId,
-    })
-      .populate("prescriptionId")
-      .populate("medicines.medicineId");
-
-    if (!prescriptionDetail) {
-      return res.status(400).json({
-        message: "Không tìm thấy Chi tiết đơn thuốc!",
-      });
-    }
-
-    return res.status(200).json({
-      message: "Tìm Chi tiết đơn thuốc thành công!",
-      prescriptionDetail,
-    });
-  } catch (error) {
-    return res.status(404).json({
-      message: `Đã xảy ra lỗi: ${error.message}`,
     });
   }
 };

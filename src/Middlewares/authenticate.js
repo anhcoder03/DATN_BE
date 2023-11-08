@@ -30,7 +30,6 @@ const authenticate = async (req, res, next) => {
     const { _id } = payload.payload;
     //get User
     const user = await User.findById(_id);
-    console.log(">>>user:", user);
     if (!user) {
       throw new Error("Không tìm thấy người dùng!");
     }

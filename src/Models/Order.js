@@ -1,31 +1,20 @@
 import mongoose, { Schema } from "mongoose";
 import mongoosePaginate from "mongoose-paginate-v2";
-const PrescriptionSchema = new Schema(
+const OrderSchema = new Schema(
   {
     _id: {
       type: String,
       required: true,
     },
-    doctorId: {
+    customerId: {
       type: String,
       ref: "User",
-    },
-    medicalExaminationSlipId: {
-      type: String,
-      ref: "MedicalExaminationSlip",
     },
     customer: {
       _id: String,
       name: String,
       phone: String,
     },
-    doctor: {
-      _id: String,
-      name: String,
-    },
-    diagnostic: String,
-    reExaminationDate: String,
-    advice: String,
     medicines: [
       {
         medicineId: {
@@ -36,6 +25,11 @@ const PrescriptionSchema = new Schema(
         price: Number,
       },
     ],
+    orderType: {
+      type: String,
+      enum: ["Kê đơn", "Bán tại cửa hàng"],
+      default: "Bán tại cửa hàng",
+    },
     totalAmount: Number,
     paymentStatus: {
       type: String,
@@ -55,5 +49,5 @@ const PrescriptionSchema = new Schema(
   { versionKey: false, timestamps: true }
 );
 
-PrescriptionSchema.plugin(mongoosePaginate);
-export default mongoose.model("Prescription", PrescriptionSchema);
+OrderSchema.plugin(mongoosePaginate);
+export default mongoose.model("Order", OrderSchema);

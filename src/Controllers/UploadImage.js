@@ -3,7 +3,6 @@ import cloudinary from "../Configs/cloudinary.js";
 //UPLOAD IMAGE
 export const uploadImage = async (req, res) => {
   const files = req.files;
-  console.log(files);
   try {
     const uploadPromises = files.map((file) => {
       if (file.mimetype.startsWith("image/")) {
