@@ -16,7 +16,6 @@ import clinicRouter from "./Routes/Clinics.js";
 import serviceByExamination from "./Routes/ServiceByExamination.js";
 import medicalExaminationSlipRouter from "./Routes/MedicalExaminationSlip.js";
 import medicalExaminationInvoiceRouter from "./Routes/MedicalExaminationInvoice.js";
-import staffRouter from "./Routes/Staff.js";
 import prescriptionRouter from "./Routes/Prescription.js";
 dotenv.config();
 const app = express();
@@ -36,7 +35,6 @@ app.use(serviceRouter);
 app.use(clinicRouter);
 app.use(medicalExaminationSlipRouter);
 app.use(medicalExaminationInvoiceRouter);
-app.use(staffRouter);
 app.use(prescriptionRouter);
 app.use(serviceByExamination);
 //connect to MongoDB

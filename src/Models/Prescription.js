@@ -7,39 +7,53 @@ const PrescriptionSchema = new Schema(
       required: true,
     },
     doctorId: {
-      type: mongoose.Types.ObjectId,
+      type: String,
       ref: "User",
     },
-    customerId: {
+    medicalExaminationSlipId: {
       type: String,
-      ref: "Customer",
+      ref: "MedicalExaminationSlip",
     },
-    staffId: {
-      type: mongoose.Types.ObjectId,
-      ref: "Staff",
+    customer: {
+      _id: String,
+      name: String,
+      phone: String,
     },
-    totalAmount: Number,
+    doctor: {
+      _id: String,
+      name: String,
+    },
+    diagnostic: String,
+    reExaminationDate: String,
+    advice: String,
+    medicines: [
+      {
+        medicineId: {
+          type: String,
+          ref: "Medicine",
+        },
+        quantity: Number,
+        unit_selling: String, // đơn vị xuất kho
+        unit_using: String, // đơn vị sử dụng
+        dosage: String, // liều dùng
+        timesUsePerDay: Number, // số lần sử dụng/ngày
+        how_using: String, // cách dùng
+        routeOfDrug: String, // đường dùng thuốc
+      },
+    ],
     status: {
-      type: String,
-      enum: ["Đã thanh toán", "Chưa thanh toán", "Đã hủy"],
-      default: "Chưa thanh toán",
+      type: Number,
+      default: 0,
+      // Status === 1: Đã hoàn thành (Đơn hàng đã hoàn thành)
+      // Status === 0: Chưa hoàn thành (Đơn hàng chưa hoàn thành)
     },
-    paymentMethod: {
+    note: {
       type: String,
-      enum: ["Chuyển khoản", "Tiền mặt"],
-      default: "Tiền mặt",
+      default: "Không có ghi chú",
     },
-    // notes: {
-    //   type: String,
-    //   default: "Không có ghi chú",
-    // },
   },
   { versionKey: false, timestamps: true }
 );
 
-PrescriptionSchema.index({
-  id: "text",
-  customerId: "text",
-});
 PrescriptionSchema.plugin(mongoosePaginate);
 export default mongoose.model("Prescription", PrescriptionSchema);

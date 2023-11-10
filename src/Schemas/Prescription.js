@@ -10,9 +10,25 @@ const medicinesSchema = Joi.object({
     "number.base": "Số lượng thuốc phải là một số!",
     "number.min": "Số lượng thuốc phải lớn hơn 0",
   }),
-  dosage: Joi.string().trim().required().messages({
-    "string.empty": "Liều lượng không được để trống!",
-    "any.required": "Trường Liều lượng là bắt buộc!",
+  unit_selling: Joi.string().trim().required().messages({
+    "string.empty": "Vui lòng chọn Đơn vị xuất kho!",
+    "any.required": "Trường Đơn vị xuất kho là bắt buộc!",
+  }),
+  unit_using: Joi.string().trim().required().messages({
+    "string.empty": "Vui lòng chọn Đơn vị sử dụng!",
+    "any.required": "Trường Đơn vị sử dụng là bắt buộc!",
+  }),
+  dosage: Joi.string().empty(Joi.allow()).trim().default("---"),
+
+  how_using: Joi.string().empty(Joi.allow()).trim().default("---"),
+  timesUsePerDay: Joi.number().min(1).required().messages({
+    "number.empty": "Số lần sử dụng trong ngày không được để trống!",
+    "number.base": "Số lần sử dụng trong ngày phải là một số!",
+    "number.min": "Số lần sử dụng trong ngày phải lớn hơn 0",
+  }),
+  routeOfDrug: Joi.string().trim().required().messages({
+    "string.empty": "Vui lòng chọn Đường dùng thuốc!",
+    "any.required": "Trường Đường dùng thuốc là bắt buộc!",
   }),
 });
 
@@ -22,33 +38,20 @@ const PrescriptionValidate = Joi.object({
     "string.empty": "ID Bác sĩ không được để trống!",
     "any.required": "Trường ID Bác sĩ là bắt buộc!",
   }),
-  customerId: Joi.string().trim().required().messages({
-    "string.empty": "ID Khách hàng không được để trống!",
-    "any.required": "Trường ID Khách hàng là bắt buộc!",
+  medicalExaminationSlipId: Joi.string().trim().required().messages({
+    "string.empty": "ID Phiếu khám không được để trống!",
+    "any.required": "Trường ID Phiếu khám là bắt buộc!",
   }),
-  staffId: Joi.string().trim().required().messages({
-    "string.empty": "ID Nhân viên không được để trống!",
-    "any.required": "Trường ID Nhân viên là bắt buộc!",
-  }),
-  medicines: Joi.array().ordered(medicinesSchema).min(1).required().messages({
+  diagnostic: Joi.string().empty(Joi.allow()).trim(),
+  advice: Joi.string().empty(Joi.allow()).trim(),
+  reExaminationDate: Joi.date().empty(Joi.allow()),
+  medicines: Joi.array().items(medicinesSchema).min(1).required().messages({
     "array.base": "Trường Thuốc phải là 1 mảng!",
-    "array.min": "Liều lượng thuốc không được nhỏ hơn {{#limit}}!",
-    "any.required": "Trường Liều lượng thuốc là bắt buộc!",
+    "array.min": "Thuốc không được ít hơn {{#limit}}!",
+    "any.required": "Trường Thuốc là bắt buộc!",
   }),
-  totalAmount: Joi.number().min(1).required().messages({
-    "number.empty": "Thành tiền không được để trống!",
-    "number.base": "Thành tiền phải là một số!",
-    "number.min": "Thành tiền phải lớn hơn 0",
-  }),
-  status: Joi.string().trim().required().messages({
-    "string.empty": "Trạng thái hóa đơn không được để trống!",
-    "any.required": "Trường Trạng thái hóa đơn là bắt buộc!",
-  }),
-  paymentMethod: Joi.string().trim().required().messages({
-    "string.empty": "Phương thức thanh toán không được để trống!",
-    "any.required": "Trường Phương thức thanh toán là bắt buộc!",
-  }),
-  // notes: Joi.string().empty(Joi.allow()).trim(),
+  status: Joi.number().default(0),
+  note: Joi.string().empty(Joi.allow()).trim(),
 });
 
 export default PrescriptionValidate;

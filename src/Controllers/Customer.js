@@ -22,7 +22,6 @@ export const getAllCustomers = async (req, res) => {
         { _id: search },
       ];
     }
-    console.log(query);
     if (_gender) {
       query.gender = _gender;
     }

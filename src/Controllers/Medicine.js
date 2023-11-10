@@ -10,6 +10,7 @@ const getAllMedicine = async (req, res) => {
     _order = "asc",
     search,
     _status,
+    _doctor,
   } = req.query;
   try {
     const query = {};
