@@ -50,19 +50,7 @@ const PrescriptionValidate = Joi.object({
     "array.min": "Thuốc không được ít hơn {{#limit}}!",
     "any.required": "Trường Thuốc là bắt buộc!",
   }),
-  // totalAmount: Joi.number().min(1).required().messages({
-  //   "number.empty": "Thành tiền không được để trống!",
-  //   "number.base": "Thành tiền phải là một số!",
-  //   "number.min": "Thành tiền phải lớn hơn 0",
-  // }),
-  // paymentStatus: Joi.string().trim().required().messages({
-  //   "string.empty": "Trạng thái Đơn thuốc không được để trống!",
-  //   "any.required": "Trường Trạng thái Đơn thuốc là bắt buộc!",
-  // }),
-  // paymentMethod: Joi.string().trim().required().messages({
-  //   "string.empty": "Phương thức thanh toán không được để trống!",
-  //   "any.required": "Trường Phương thức thanh toán là bắt buộc!",
-  // }),
+  status: Joi.number().default(0),
   note: Joi.string().empty(Joi.allow()).trim(),
 });
 

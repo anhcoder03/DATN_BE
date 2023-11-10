@@ -46,6 +46,11 @@ const OrderSchema = new Schema(
       enum: ["Chuyển khoản", "Tiền mặt"],
       default: "Tiền mặt",
     },
+    status: {
+      type: String,
+      enum: ["Đang chờ xử lý", "Hoàn thành", "Đã hủy"],
+      default: "Đang chờ xử lý",
+    },
     note: {
       type: String,
       default: "Không có ghi chú",

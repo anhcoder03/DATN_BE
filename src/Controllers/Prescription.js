@@ -14,6 +14,8 @@ export const getAllPrescription = async (req, res) => {
     _limit = 10,
     _sort = "createdAt",
     _order = "desc",
+    _status,
+    _doctorId,
     search,
   } = req.query;
 
@@ -55,6 +57,14 @@ export const getAllPrescription = async (req, res) => {
         { _id: { $regex: searchRegex } },
         { doctorId: { $regex: searchRegex } },
       ];
+    }
+
+    if (_status) {
+      query.status = _status;
+    }
+
+    if (_doctorId) {
+      query.doctorId = _doctorId;
     }
 
     const prescriptions = await Prescription.paginate(query, options);
@@ -193,6 +203,7 @@ export const createPrescription = async (req, res) => {
       orderType: "Kê đơn",
       paymentStatus: "Chưa thanh toán",
       paymentMethod: "Tiền mặt",
+      status: "Đang chờ xử lý",
       note: prescription.note,
     };
 
@@ -222,6 +233,21 @@ export const updatePrescription = async (req, res) => {
   const { doctorId, medicalExaminationSlipId, medicines } = req.body;
   const { id } = req.params;
   try {
+    const prescription = await Prescription.findById(id);
+    if (!prescription) {
+      return res.status(400).json({
+        message: "Không tìm thấy Kê đơn cần cập nhật",
+      });
+    }
+
+    // Kiểm tra điều kiện isComplete
+    if (prescription && prescription.status === 1) {
+      return res.status(400).json({
+        message:
+          "Đơn hàng thuộc phiếu Kê đơn này đã hoàn thành, không thể cập nhật!",
+      });
+    }
+
     const { error } = PrescriptionValidate.validate(req.body, {
       abortEarly: false,
     });
@@ -250,7 +276,8 @@ export const updatePrescription = async (req, res) => {
       };
     }
 
-    const prescription = await Prescription.findByIdAndUpdate(
+    // Cập nhật Prescription
+    const prescriptionUpdated = await Prescription.findByIdAndUpdate(
       id,
       { ...req.body, customer, doctor },
       {
@@ -263,7 +290,6 @@ export const updatePrescription = async (req, res) => {
 
     for (const medicineData of medicines) {
       const medicine = await Medicine.findById(medicineData.medicineId);
-
       if (medicine) {
         orderMedicines.push({
           medicineId: medicineData.medicineId,
@@ -284,6 +310,7 @@ export const updatePrescription = async (req, res) => {
       orderType: "Kê đơn",
       paymentStatus: "Chưa thanh toán",
       paymentMethod: "Tiền mặt",
+      status: "Đang chờ xử lý",
       note: prescription.note,
     };
 
@@ -298,7 +325,7 @@ export const updatePrescription = async (req, res) => {
 
     return res.status(200).json({
       message: "Cập nhật Kê đơn thành công!",
-      prescription,
+      prescription: prescriptionUpdated,
     });
   } catch (error) {
     return res.status(404).json({
@@ -314,14 +341,24 @@ export const deletePrescription = async (req, res) => {
     const prescription = await Prescription.findById(id);
     if (!prescription) {
       return res.status(400).json({
-        message: "Không tìm thấy Đơn thuốc!",
+        message: "Không tìm thấy Kê đơn!",
+      });
+    } else if (prescription && prescription.status === 1) {
+      return res.status(400).json({
+        message:
+          "Đơn hàng thuộc phiếu Kê đơn này đã hoàn thành, không thể xóa!",
       });
     }
 
-    await Prescription.findByIdAndDelete(id);
+    const order = await Order.findOne({ prescriptionId: id });
+
+    const prescriptionDeleted = Prescription.findByIdAndDelete(id);
+    const orderDeleted = Order.findByIdAndDelete(order._id);
+
+    await Promise.all([prescriptionDeleted, orderDeleted]);
 
     return res.status(200).json({
-      message: "Xóa Đơn thuốc thành công!",
+      message: "Xóa Kê đơn thành công!",
     });
   } catch (error) {
     return res.status(500).json({

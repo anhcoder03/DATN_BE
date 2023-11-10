@@ -39,20 +39,14 @@ const PrescriptionSchema = new Schema(
         timesUsePerDay: Number, // số lần sử dụng/ngày
         how_using: String, // cách dùng
         routeOfDrug: String, // đường dùng thuốc
-        // price: Number,
       },
     ],
-    // totalAmount: Number,
-    // paymentStatus: {
-    //   type: String,
-    //   enum: ["Đã thanh toán", "Chưa thanh toán"],
-    //   default: "Chưa thanh toán",
-    // },
-    // paymentMethod: {
-    //   type: String,
-    //   enum: ["Chuyển khoản", "Tiền mặt"],
-    //   default: "Tiền mặt",
-    // },
+    status: {
+      type: Number,
+      default: 0,
+      // Status === 1: Đã hoàn thành (Đơn hàng đã hoàn thành)
+      // Status === 0: Chưa hoàn thành (Đơn hàng chưa hoàn thành)
+    },
     note: {
       type: String,
       default: "Không có ghi chú",
