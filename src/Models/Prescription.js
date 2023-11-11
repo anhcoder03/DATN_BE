@@ -22,6 +22,7 @@ const PrescriptionSchema = new Schema(
     doctor: {
       _id: String,
       name: String,
+      phone: String,
     },
     diagnostic: String,
     reExaminationDate: String,
@@ -42,10 +43,9 @@ const PrescriptionSchema = new Schema(
       },
     ],
     status: {
-      type: Number,
-      default: 0,
-      // Status === 1: Đã hoàn thành (Đơn hàng đã hoàn thành)
-      // Status === 0: Chưa hoàn thành (Đơn hàng chưa hoàn thành)
+      type: String,
+      enum: ["Hoàn thành", "Chưa hoàn thành"],
+      default: "Chưa hoàn thành",
     },
     note: {
       type: String,

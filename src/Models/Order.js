@@ -8,12 +8,16 @@ const OrderSchema = new Schema(
     },
     customerId: {
       type: String,
-      ref: "User",
+      ref: "Customer",
     },
     customer: {
       _id: String,
       name: String,
       phone: String,
+    },
+    creatorId: {
+      type: String,
+      ref: "User",
     },
     prescriptionId: {
       type: String,
@@ -44,7 +48,6 @@ const OrderSchema = new Schema(
     paymentMethod: {
       type: String,
       enum: ["Chuyển khoản", "Tiền mặt"],
-      default: "Tiền mặt",
     },
     status: {
       type: String,
