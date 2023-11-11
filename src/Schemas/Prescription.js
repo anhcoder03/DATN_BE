@@ -19,7 +19,6 @@ const medicinesSchema = Joi.object({
     "any.required": "Trường Đơn vị sử dụng là bắt buộc!",
   }),
   dosage: Joi.string().empty(Joi.allow()).trim().default("---"),
-
   how_using: Joi.string().empty(Joi.allow()).trim().default("---"),
   timesUsePerDay: Joi.number().min(1).required().messages({
     "number.empty": "Số lần sử dụng trong ngày không được để trống!",
@@ -50,7 +49,7 @@ const PrescriptionValidate = Joi.object({
     "array.min": "Thuốc không được ít hơn {{#limit}}!",
     "any.required": "Trường Thuốc là bắt buộc!",
   }),
-  status: Joi.number().default(0),
+  status: Joi.string().default("Chưa hoàn thành"),
   note: Joi.string().empty(Joi.allow()).trim(),
 });
 

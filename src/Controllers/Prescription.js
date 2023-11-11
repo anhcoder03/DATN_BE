@@ -4,7 +4,7 @@ import Prescription from "../Models/Prescription.js";
 import Medicine from "../Models/Medicine.js";
 import PrescriptionValidate from "../Schemas/Prescription.js";
 import generateNextId from "../Utils/generateNextId.js";
-import handleTotalOrder from "../Utils/handleTotalAmount.js";
+import handleTotalOrder from "../Utils/handleTotalOrder.js";
 import Order from "../Models/Order.js";
 
 // get all Prescription
@@ -26,7 +26,7 @@ export const getAllPrescription = async (req, res) => {
       [_sort]: _order === "asc" ? 1 : -1,
     },
     populate: [
-      { path: "doctorId" },
+      { path: "doctorId", select: "_id name phone" },
       { path: "medicalExaminationSlipId" },
       { path: "medicines.medicineId", select: "_id name price" },
     ],
@@ -52,6 +52,9 @@ export const getAllPrescription = async (req, res) => {
         },
         {
           "doctor.name": { $regex: searchRegex },
+        },
+        {
+          "doctor.phone": { $regex: searchRegex },
         },
         { medicalExaminationSlipId: { $regex: searchRegex } },
         { _id: { $regex: searchRegex } },
@@ -103,7 +106,7 @@ export const getOnePrescription = async (req, res) => {
     const prescription = await Prescription.findById(id)
       .populate("doctorId")
       .populate("medicalExaminationSlipId")
-      .populate("medicines.medicineId");
+      .populate({ path: "medicines.medicineId", select: "_id name price" });
 
     if (!prescription) {
       return res.status(400).json({
@@ -151,6 +154,7 @@ export const createPrescription = async (req, res) => {
       doctor = {
         _id: user._id,
         name: user.name,
+        phone: user.phone,
       };
     }
 
@@ -197,6 +201,7 @@ export const createPrescription = async (req, res) => {
       id: orderId,
       customer,
       customerId: medicalExaminationSlip.customerId,
+      creatorId: prescription.doctorId,
       prescriptionId: prescription._id,
       medicines: orderMedicines,
       totalAmount: handleTotalOrder(orderMedicines),
@@ -241,7 +246,7 @@ export const updatePrescription = async (req, res) => {
     }
 
     // Kiểm tra điều kiện isComplete
-    if (prescription && prescription.status === 1) {
+    if (prescription && prescription.status === "Hoàn thành") {
       return res.status(400).json({
         message:
           "Đơn hàng thuộc phiếu Kê đơn này đã hoàn thành, không thể cập nhật!",
@@ -343,7 +348,7 @@ export const deletePrescription = async (req, res) => {
       return res.status(400).json({
         message: "Không tìm thấy Kê đơn!",
       });
-    } else if (prescription && prescription.status === 1) {
+    } else if (prescription && prescription.status === "Hoàn thành") {
       return res.status(400).json({
         message:
           "Đơn hàng thuộc phiếu Kê đơn này đã hoàn thành, không thể xóa!",
