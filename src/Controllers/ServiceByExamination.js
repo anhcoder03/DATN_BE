@@ -162,3 +162,30 @@ export const deleteServiceByExam = async (req, res) => {
     });
   }
 };
+
+export const updateServiceByExam = async (req, res) => {
+  try {
+    const id = req.params.id;
+
+    const designation = await ServiceByExamination.findOneAndUpdate(
+      { _id: id },
+      req.body,
+      {
+        new: true,
+      }
+    );
+    if (!designation) {
+      return res.status(400).json({
+        message: "Tài nguyên không tồn tại !",
+      });
+    }
+    return res.json({
+      message: "Cập nhật thành công !",
+      designation,
+    });
+  } catch (error) {
+    return res.status(404).json({
+      message: error.message,
+    });
+  }
+};
