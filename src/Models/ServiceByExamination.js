@@ -49,7 +49,7 @@ const ServiceByExaminationSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ["waiting", "done", "canceled"],
+      enum: ["waiting", "running", "done", "canceled"],
       default: "waiting",
     },
     day_run: {

@@ -93,6 +93,26 @@ const MedicalExaminationSlipSchema = new mongoose.Schema(
       // ref: ""
       default: null,
     },
+    //két quả
+    conclude: {
+      type: String,
+      default: null,
+    },
+    // chuẩn đoán
+    diagnostic: {
+      type: String,
+      default: null,
+    },
+    //dặn dò
+    advice: {
+      type: String,
+      default: null,
+    },
+    // huowgns dẫn điều trị
+    treatmentInstructions: {
+      type: String,
+      default: null,
+    },
   },
   { versionKey: false, timestamps: true }
 );
