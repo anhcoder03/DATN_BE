@@ -25,7 +25,6 @@ export const getAllUser = async (req, res) => {
       sort: {
         [_sort]: _order === "asc" ? 1 : -1,
       },
-      populate: [{ path: "role" }],
     };
     const users = await User.paginate({}, options);
     if (!users) {
