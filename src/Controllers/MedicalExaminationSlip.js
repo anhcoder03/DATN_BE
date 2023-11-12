@@ -1,8 +1,12 @@
 import Customer from "../Models/Customer.js";
 import MedicalExaminationSlip from "../Models/MedicalExaminationSlip.js";
 import ServiceByExamination from "../Models/ServiceByExamination.js";
+import admin from "firebase-admin";
+import serviceAccount from "../medipro-70534-firebase-adminsdk-shav1-247315c497.json" assert { type: "json" };
 import medicineExaminationSlipValidate from "../Schemas/MedicalExaminationSlip.js";
 import generateNextId from "../Utils/generateNextId.js";
+import { sendMessagej } from "../sendMessagej.js";
+import moment from "moment/moment.js";
 
 export const getAllExamination = async (req, res) => {
   try {
@@ -148,6 +152,27 @@ export const createMedicalExaminationSlip = async (req, res) => {
         });
         await serviceByExamination.save();
       }
+      return res.json({
+        message: "Tạo phiếu khám thành công",
+        examination,
+      });
+    } else if (req.body.status === "booking") {
+      const examination = await MedicalExaminationSlip.create({
+        ...rest,
+        customer,
+        id: examinationId,
+      });
+      await Customer.findByIdAndUpdate(customerId, {
+        $addToSet: { examination_history: examination._id },
+      });
+
+      await sendMessagej(
+        "d3HXOsfB-ii84sgwZmO5PU:APA91bHMkmCtA9CAQL2DGJ1zUpZMMaZPu9_suCT6wdJt98Vl27EMJVu9mOsnJcRXxae-cA89AoZCWnXtYa_Vhs6H_YnSU-JMNk7Qig6Kod46r4tVGfRHbcBepaZ0Akwds1LfLP3G5lc8",
+        `Phòng khám Medipro`,
+        `Khách hàng ${customer.name} đã đặt lịch khám vào lúc ${moment(
+          examination.createdAt
+        ).format("HH:mm DD/MM/yyyy")}`
+      );
       return res.json({
         message: "Tạo phiếu khám thành công",
         examination,
