@@ -23,7 +23,7 @@ const MedicalExaminationSlipSchema = new mongoose.Schema(
     },
     doctorId: {
       // bác sĩ khám
-      type: mongoose.Types.ObjectId,
+      type: String,
       ref: "User",
     },
     symptom: {
@@ -44,7 +44,7 @@ const MedicalExaminationSlipSchema = new mongoose.Schema(
     },
     staffId: {
       // nhân viên tiếp đón | người tạo phiếu
-      type: mongoose.Types.ObjectId,
+      type: String,
       ref: "User",
     },
     clinicId: {
@@ -67,6 +67,10 @@ const MedicalExaminationSlipSchema = new mongoose.Schema(
       default: null,
     },
     day_done: {
+      type: String,
+      default: null,
+    },
+    day_running: {
       type: String,
       default: null,
     },

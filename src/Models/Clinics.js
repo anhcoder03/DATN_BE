@@ -17,7 +17,7 @@ const ClinicSchema = new mongoose.Schema(
       type: String,
     },
     doctorInClinic: {
-      type: mongoose.Types.ObjectId,
+      type: String,
       ref: "User",
     },
   },

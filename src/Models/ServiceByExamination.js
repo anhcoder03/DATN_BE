@@ -24,13 +24,14 @@ const ServiceByExaminationSchema = new mongoose.Schema(
       type: String,
       default: null,
     },
-    fileResult: {
-      type: String,
-      default: null,
-    },
+    fileResult: [
+      {
+        url: String,
+      },
+    ],
     doctorId: {
       // bác sĩ khám
-      type: mongoose.Types.ObjectId,
+      type: String,
       ref: "User",
     },
     customerId: {
@@ -39,7 +40,7 @@ const ServiceByExaminationSchema = new mongoose.Schema(
     },
     staffId: {
       // nhân viên tiếp đón | người tạo phiếu
-      type: mongoose.Types.ObjectId,
+      type: String,
       ref: "User",
     },
     clinicId: {
