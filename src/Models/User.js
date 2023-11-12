@@ -2,23 +2,17 @@ import mongoose from "mongoose";
 import mongoosePaginate from "mongoose-paginate-v2";
 const userSchema = new mongoose.Schema(
   {
-    name: {
+    _id: {
       type: String,
+      required: true,
     },
-    password: {
-      type: String,
-    },
-    email: {
-      type: String,
-    },
-    phone: {
-      type: Number,
-    },
-    avatar: {
-      type: String,
-    },
+    name: String,
+    password: String,
+    email: String,
+    phone: Number,
+    avatar: String,
     role: {
-      type: mongoose.Types.ObjectId,
+      type: String,
       ref: "Role",
     },
   },

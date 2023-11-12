@@ -72,7 +72,7 @@ export const getAllPrescription = async (req, res) => {
 
     const prescriptions = await Prescription.paginate(query, options);
 
-    if (!prescriptions || prescriptions.docs.length === 0) {
+    if (!prescriptions) {
       return res.status(400).json({
         message: "Không tìm thấy danh sách Kê đơn!",
       });

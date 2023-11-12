@@ -5,10 +5,10 @@ import {
   generalAccessToken,
   generalRefreshToken,
   generalVerifyRefreshToken,
-  generalVerifyToken,
 } from "../Services/jwtService.js";
 import bcrypt from "bcryptjs";
 import dotenv from "dotenv";
+import generateNextId from "../Utils/generateNextId.js";
 dotenv.config();
 
 export const getAllUser = async (req, res) => {
@@ -17,7 +17,7 @@ export const getAllUser = async (req, res) => {
       _page = 1,
       _limit = 10,
       _sort = "createdAt",
-      _order = "asc",
+      _order = "desc",
     } = req.query;
     const options = {
       page: _page,
@@ -25,15 +25,16 @@ export const getAllUser = async (req, res) => {
       sort: {
         [_sort]: _order === "asc" ? 1 : -1,
       },
+      populate: [{ path: "role" }],
     };
     const users = await User.paginate({}, options);
     if (!users) {
-      return res.status(400).json({
-        message: "Tài nguyên không tồn tại !",
+      return res.status(404).json({
+        message: "Tài nguyên không tồn tại!",
       });
     }
     return res.json({
-      message: "Lấy tài nguyên thành công !",
+      message: "Lấy tài nguyên thành công!",
       users,
     });
   } catch (error) {
@@ -48,11 +49,11 @@ export const getOneUser = async (req, res) => {
     const user = await User.findById(req.params.id).populate("role");
     if (!user) {
       return res.status(400).json({
-        message: "Tài nguyên không tồn tại !",
+        message: "Tài nguyên không tồn tại!",
       });
     }
     return res.json({
-      message: "Lấy tài nguyên thành công !",
+      message: "Lấy tài nguyên thành công!",
       user,
     });
   } catch (error) {
@@ -77,7 +78,6 @@ export const deleteUser = async (req, res) => {
     }
     return res.json({
       message: "Xoá người dùng thành công!",
-      user,
     });
   } catch (error) {
     return res.status(404).json({
@@ -101,9 +101,22 @@ export const updateUser = async (req, res) => {
     const user = await User.findById(id);
     if (!user) {
       return res.status(404).json({
-        message: "Người dùng không tồn tại !",
+        message: "Người dùng không tồn tại!",
       });
     }
+
+    // Kiểm tra xem email mới đã tồn tại với _id khác hay không
+    const existingEmail = await User.findOne({
+      email: req.body.email,
+      _id: { $ne: id },
+    });
+
+    if (existingEmail) {
+      return res.status(400).json({
+        message: "Email này đã tồn tại!",
+      });
+    }
+
     const newRole = await Role.findById(role);
     if (!newRole) {
       return res.status(404).json({
@@ -119,7 +132,7 @@ export const updateUser = async (req, res) => {
       await newRole.save();
     }
 
-    // Cập nhật thuốc
+    // Cập nhật người dùng
     const userUpdated = await User.findByIdAndUpdate(id, req.body, {
       new: true,
     });
@@ -153,7 +166,7 @@ export const signup = async (req, res) => {
       });
     }
 
-    //kiem tra ten danh muc co ton tai trong CSDL hay chua
+    //kiem tra email co ton tai trong CSDL hay chua
     const existingEmail = await User.findOne({ email: req.body.email });
     if (existingEmail) {
       return res.status(400).json({
@@ -163,19 +176,25 @@ export const signup = async (req, res) => {
 
     const hashedPassword = await bcrypt.hash(req.body.password, 10);
 
+    // custom _id
+    const lastUser = await User.findOne({}, {}, { sort: { _id: -1 } });
+    const userId = generateNextId(lastUser ? lastUser._id : null, "ND");
+
     const user = await User.create({
       ...req.body,
+      _id: userId,
       password: hashedPassword,
     });
+
     await Role.findByIdAndUpdate(user.role, {
       $addToSet: { users: user._id },
     });
     return res.json({
-      message: "Thêm tài nguyên thành công !",
+      message: "Tạo tài khoản mới thành công!",
       user,
     });
   } catch (error) {
-    return res.status(404).json({
+    return res.status(500).json({
       message: error.message,
     });
   }

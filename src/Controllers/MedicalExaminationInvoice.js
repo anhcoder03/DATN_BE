@@ -41,22 +41,19 @@ export const getAllMedicalExaminationInvoice = async (req, res) => {
       options
     );
 
-    if (
-      !MedicalExaminationInvoices ||
-      MedicalExaminationInvoices.docs.length === 0
-    ) {
+    if (!MedicalExaminationInvoices) {
       return res.status(404).json({
-        message: "Không tìm thấy danh sách hóa đơn khám bệnh nào!",
+        message: "Không tìm thấy danh sách Hóa đơn khám bệnh!",
       });
     }
 
     return res.status(200).json({
-      message: "Lấy danh sách hóa đơn khám bệnh thành công!",
+      message: "Lấy danh sách Hóa đơn khám bệnh thành công!",
       MedicalExaminationInvoices,
     });
   } catch (error) {
     return res.status(500).json({
-      message: `Đã xảy ra lỗi khi lấy danh sách hóa đơn khám bệnh ${error.message}
+      message: `Đã xảy ra lỗi: ${error.message}
       !`,
     });
   }
