@@ -7,6 +7,7 @@ admin.initializeApp({
   // other configuration options
 });
 export async function sendMessagej(token, title, body) {
+  console.log("body>>>:", body);
   const message = {
     notification: {
       title: title,
