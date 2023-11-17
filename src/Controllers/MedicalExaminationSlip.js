@@ -106,8 +106,15 @@ export const createMedicalExaminationSlip = async (req, res) => {
     const notifyTokens = await getNotifyTokens();
     if (!examinationId || examinationId === "") {
       // Nếu không có mã ID, tạo mã mới bằng cách kết hợp mã KH và mã tự sinh
-      const timestamp = new Date().getTime();
-      examinationId = "PK" + timestamp.toString();
+      const lastExamination = await MedicalExaminationSlip.findOne(
+        {},
+        {},
+        { sort: { _id: -1 } }
+      );
+      examinationId = generateNextId(
+        lastExamination ? lastExamination._id : null,
+        "PK"
+      );
     } else {
       const isExiting = await MedicalExaminationSlip.findById(examinationId);
       if (isExiting) {
