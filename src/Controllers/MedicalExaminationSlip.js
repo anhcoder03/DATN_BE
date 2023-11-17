@@ -3,9 +3,10 @@ import MedicalExaminationSlip from "../Models/MedicalExaminationSlip.js";
 import ServiceByExamination from "../Models/ServiceByExamination.js";
 import medicineExaminationSlipValidate from "../Schemas/MedicalExaminationSlip.js";
 import generateNextId from "../Utils/generateNextId.js";
-import { sendMessagej } from "../sendMessagej.js";
+import { sendMessageToDevices } from "../sendMessageToDevices.js";
 import moment from "moment/moment.js";
 import Notification from "../Models/Notification.js";
+import { getNotifyTokens } from "./NotifyToken.js";
 
 export const getAllExamination = async (req, res) => {
   try {
@@ -102,11 +103,18 @@ export const createMedicalExaminationSlip = async (req, res) => {
     // Kiểm tra xem có mã ID được cung cấp hay không
     let examinationId = req.body._id;
     const customerId = req.body.customerId;
-    const receiveToken = req.body.receiveToken;
+    const notifyTokens = await getNotifyTokens();
     if (!examinationId || examinationId === "") {
       // Nếu không có mã ID, tạo mã mới bằng cách kết hợp mã KH và mã tự sinh
-      const timestamp = new Date().getTime();
-      examinationId = "PK" + timestamp.toString();
+      const lastExamination = await MedicalExaminationSlip.findOne(
+        {},
+        {},
+        { sort: { _id: -1 } }
+      );
+      examinationId = generateNextId(
+        lastExamination ? lastExamination._id : null,
+        "PK"
+      );
     } else {
       const isExiting = await MedicalExaminationSlip.findById(examinationId);
       if (isExiting) {
@@ -162,19 +170,22 @@ export const createMedicalExaminationSlip = async (req, res) => {
         customer,
         id: examinationId,
       });
+      console.log("ssskskfbhbd");
       await Customer.findByIdAndUpdate(customerId, {
         $addToSet: { examination_history: examination._id },
       });
 
-      await sendMessagej(
-        receiveToken,
-        `Phòng khám Medipro`,
-        `Khách hàng ${customer.name}-${
-          customer.phone
-        } đã đặt lịch khám vào lúc ${moment(examination.createdAt).format(
-          "HH:mm DD/MM/yyyy"
-        )}`
-      );
+      if (notifyTokens.length) {
+        await sendMessageToDevices(
+          notifyTokens,
+          `Phòng khám Medipro`,
+          `Khách hàng ${customer.name}-${
+            customer.phone
+          } đã đặt lịch khám vào lúc ${moment(examination.createdAt).format(
+            "HH:mm DD/MM/yyyy"
+          )}`
+        );
+      }
 
       // Tạo mới thông báo model Notification
 
@@ -219,7 +230,7 @@ export const createMedicalExaminationSlip = async (req, res) => {
       });
     }
   } catch (error) {
-    return res.status(404).json({
+    return res.status(500).json({
       message: error.message,
     });
   }
@@ -273,12 +284,12 @@ export const deleteExamination = async (req, res) => {
 };
 
 export const updateExamination = async (req, res) => {
-  const { status, receiveToken } = req.body;
+  const { status } = req.body;
   try {
     const id = req.params.id;
     const services = req.body.examinationServiceId;
     const dataExam = await MedicalExaminationSlip.findById(id);
-
+    const notifyTokens = await getNotifyTokens();
     if (dataExam.status === "cancel") {
       return res.status(400).json({
         message: "Phiếu khám này đã hủy, không thể cập nhật",
@@ -332,15 +343,17 @@ export const updateExamination = async (req, res) => {
           const customerData = await Customer.findById(examination.customerId);
 
           // Gửi thông báo đã hủy Lịch
-          await sendMessagej(
-            receiveToken,
-            `Phòng khám Medipro`,
-            `Lịch khám ${examination._id} của khách hàng ${customerData.name}-${
-              customerData.phone
-            } đã bị hủy vào ${moment(examination.updatedAt).format(
-              "HH:mm DD/MM/yyyy"
-            )}`
-          );
+          if (notifyTokens.length) {
+            await sendMessageToDevices(
+              notifyTokens,
+              `Phòng khám Medipro`,
+              `Lịch khám ${examination._id} của khách hàng ${
+                customerData.name
+              }-${customerData.phone} đã bị hủy vào ${moment(
+                examination.updatedAt
+              ).format("HH:mm DD/MM/yyyy")}`
+            );
+          }
 
           // Tạo mới thông báo model Notification
 
@@ -387,15 +400,17 @@ export const updateExamination = async (req, res) => {
           const customerData = await Customer.findById(examination.customerId);
 
           // Gửi thông báo đã hủy Lịch
-          await sendMessagej(
-            receiveToken,
-            `Phòng khám Medipro`,
-            `Phiếu khám ${examination._id} của khách hàng ${
-              customerData.name
-            }-${customerData.phone} đã bị hủy vào ${moment(
-              examination.updatedAt
-            ).format("HH:mm DD/MM/yyyy")}`
-          );
+          if (notifyTokens.length) {
+            await sendMessageToDevices(
+              notifyTokens,
+              `Phòng khám Medipro`,
+              `Phiếu khám ${examination._id} của khách hàng ${
+                customerData.name
+              }-${customerData.phone} đã bị hủy vào ${moment(
+                examination.updatedAt
+              ).format("HH:mm DD/MM/yyyy")}`
+            );
+          }
 
           // Tạo mới thông báo model Notification
 
@@ -484,15 +499,17 @@ export const updateExamination = async (req, res) => {
           const customerData = await Customer.findById(examination.customerId);
 
           // Gửi thông báo đã hủy Lịch
-          await sendMessagej(
-            receiveToken,
-            `Phòng khám Medipro`,
-            `Lịch khám ${examination._id} của khách hàng ${customerData.name}-${
-              customerData.phone
-            } đã bị hủy vào ${moment(examination.updatedAt).format(
-              "HH:mm DD/MM/yyyy"
-            )}`
-          );
+          if (notifyTokens.length) {
+            await sendMessageToDevices(
+              notifyTokens,
+              `Phòng khám Medipro`,
+              `Lịch khám ${examination._id} của khách hàng ${
+                customerData.name
+              }-${customerData.phone} đã bị hủy vào ${moment(
+                examination.updatedAt
+              ).format("HH:mm DD/MM/yyyy")}`
+            );
+          }
 
           // Tạo mới thông báo model Notification
 
@@ -539,15 +556,17 @@ export const updateExamination = async (req, res) => {
           const customerData = await Customer.findById(examination.customerId);
 
           // Gửi thông báo đã hủy Lịch
-          await sendMessagej(
-            receiveToken,
-            `Phòng khám Medipro`,
-            `Phiêu khám ${examination._id} của khách hàng ${
-              customerData.name
-            }-${customerData.phone} đã bị hủy vào ${moment(
-              examination.updatedAt
-            ).format("HH:mm DD/MM/yyyy")}`
-          );
+          if (notifyTokens.length) {
+            await sendMessageToDevices(
+              notifyTokens,
+              `Phòng khám Medipro`,
+              `Phiêu khám ${examination._id} của khách hàng ${
+                customerData.name
+              }-${customerData.phone} đã bị hủy vào ${moment(
+                examination.updatedAt
+              ).format("HH:mm DD/MM/yyyy")}`
+            );
+          }
 
           // Tạo mới thông báo model Notification
 
