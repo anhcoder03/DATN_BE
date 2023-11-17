@@ -3,7 +3,7 @@ import MedicalExaminationSlip from "../Models/MedicalExaminationSlip.js";
 import ServiceByExamination from "../Models/ServiceByExamination.js";
 import medicineExaminationSlipValidate from "../Schemas/MedicalExaminationSlip.js";
 import generateNextId from "../Utils/generateNextId.js";
-import { sendMessagej } from "../sendMessagej.js";
+import { sendMessageToDevices } from "../sendMessageToDevices.js";
 import moment from "moment/moment.js";
 import Notification from "../Models/Notification.js";
 
@@ -166,7 +166,7 @@ export const createMedicalExaminationSlip = async (req, res) => {
         $addToSet: { examination_history: examination._id },
       });
 
-      await sendMessagej(
+      await sendMessageToDevices(
         receiveToken,
         `Phòng khám Medipro`,
         `Khách hàng ${customer.name}-${
@@ -332,7 +332,7 @@ export const updateExamination = async (req, res) => {
           const customerData = await Customer.findById(examination.customerId);
 
           // Gửi thông báo đã hủy Lịch
-          await sendMessagej(
+          await sendMessageToDevices(
             receiveToken,
             `Phòng khám Medipro`,
             `Lịch khám ${examination._id} của khách hàng ${customerData.name}-${
@@ -387,7 +387,7 @@ export const updateExamination = async (req, res) => {
           const customerData = await Customer.findById(examination.customerId);
 
           // Gửi thông báo đã hủy Lịch
-          await sendMessagej(
+          await sendMessageToDevices(
             receiveToken,
             `Phòng khám Medipro`,
             `Phiếu khám ${examination._id} của khách hàng ${
@@ -484,7 +484,7 @@ export const updateExamination = async (req, res) => {
           const customerData = await Customer.findById(examination.customerId);
 
           // Gửi thông báo đã hủy Lịch
-          await sendMessagej(
+          await sendMessageToDevices(
             receiveToken,
             `Phòng khám Medipro`,
             `Lịch khám ${examination._id} của khách hàng ${customerData.name}-${
@@ -539,7 +539,7 @@ export const updateExamination = async (req, res) => {
           const customerData = await Customer.findById(examination.customerId);
 
           // Gửi thông báo đã hủy Lịch
-          await sendMessagej(
+          await sendMessageToDevices(
             receiveToken,
             `Phòng khám Medipro`,
             `Phiêu khám ${examination._id} của khách hàng ${
