@@ -22,5 +22,9 @@ const medicineExaminationSlipValidate = Joi.object({
   diagnostic: Joi.string(),
   advice: Joi.string(),
   treatmentInstructions: Joi.string(),
+  waitingCode: Joi.string(),
+  cancel_reason: Joi.string(),
+  cancel_person: Joi.string(),
+  cancel_requester: Joi.string(),
 });
 export default medicineExaminationSlipValidate;

@@ -34,9 +34,12 @@ export const getAllExamination = async (req, res) => {
           path: "customerId",
           select: "name phone _id dateOfBirth gender email note",
         },
-        { path: "doctorId" },
-        { path: "staffId" },
-        { path: "clinicId" },
+        { path: "doctorId", select: "_id name email phone" },
+        { path: "staffId", select: "_id name email phone" },
+        {
+          path: "clinicId",
+          select: "_id name status description doctorInClinic",
+        },
       ],
     };
     const searchRegex = new RegExp(search, "i");
@@ -104,6 +107,7 @@ export const createMedicalExaminationSlip = async (req, res) => {
     let examinationId = req.body._id;
     const customerId = req.body.customerId;
     const notifyTokens = await getNotifyTokens();
+    let waitingCode = req.body.waitingCode;
     if (!examinationId || examinationId === "") {
       // Nếu không có mã ID, tạo mã mới bằng cách kết hợp mã KH và mã tự sinh
       const lastExamination = await MedicalExaminationSlip.findOne(
@@ -114,6 +118,18 @@ export const createMedicalExaminationSlip = async (req, res) => {
       examinationId = generateNextId(
         lastExamination ? lastExamination._id : null,
         "PK"
+      );
+
+      // Tạo mã chờ khám
+      const lastWaitingCode = await MedicalExaminationSlip.findOne(
+        {},
+        {},
+        { sort: { waitingCode: -1 } }
+      );
+
+      waitingCode = generateNextId(
+        lastWaitingCode ? lastWaitingCode.waitingCode : null,
+        "CK"
       );
     } else {
       const isExiting = await MedicalExaminationSlip.findById(examinationId);
@@ -137,6 +153,7 @@ export const createMedicalExaminationSlip = async (req, res) => {
         ...rest,
         customer,
         id: examinationId,
+        waitingCode,
       });
 
       await Customer.findByIdAndUpdate(customerId, {
@@ -148,6 +165,7 @@ export const createMedicalExaminationSlip = async (req, res) => {
           _id: -1,
         });
         let newId = generateNextId(lastRecord ? lastRecord._id : null, "DVK");
+
         const serviceByExamination = new ServiceByExamination({
           examinationId: examination._id,
           service_examination: services[i],
@@ -169,8 +187,8 @@ export const createMedicalExaminationSlip = async (req, res) => {
         ...rest,
         customer,
         id: examinationId,
+        waitingCode,
       });
-      console.log("ssskskfbhbd");
       await Customer.findByIdAndUpdate(customerId, {
         $addToSet: { examination_history: examination._id },
       });
@@ -220,6 +238,7 @@ export const createMedicalExaminationSlip = async (req, res) => {
         ...rest,
         customer,
         id: examinationId,
+        waitingCode,
       });
       await Customer.findByIdAndUpdate(customerId, {
         $addToSet: { examination_history: examination._id },

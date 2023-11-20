@@ -19,6 +19,7 @@ export const getAllCustomers = async (req, res) => {
       query.$or = [
         { phone: { $regex: new RegExp(search, "i") } },
         { name: { $regex: new RegExp(search, "i") } },
+        { citizenId: { $regex: new RegExp(search, "i") } },
         { _id: search },
       ];
     }

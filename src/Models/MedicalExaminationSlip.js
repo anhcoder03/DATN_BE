@@ -26,21 +26,18 @@ const MedicalExaminationSlipSchema = new mongoose.Schema(
       type: String,
       ref: "User",
     },
+    waitingCode: {
+      type: String,
+      default: "",
+    },
+
     symptom: {
       //triệu chứng
       type: String,
     },
     status: {
       type: String,
-      enum: [
-        "booking",
-        "recetion",
-        "waiting",
-        "running",
-        "done",
-        "cancelling",
-        "cancel",
-      ],
+      enum: ["booking", "recetion", "waiting", "running", "done", "cancel"],
     },
     staffId: {
       // nhân viên tiếp đón | người tạo phiếu
@@ -112,8 +109,23 @@ const MedicalExaminationSlipSchema = new mongoose.Schema(
       type: String,
       default: null,
     },
-    // huowgns dẫn điều trị
+    // hướng dẫn điều trị
     treatmentInstructions: {
+      type: String,
+      default: null,
+    },
+    // lý do hủy khám
+    cancel_reason: {
+      type: String,
+      default: null,
+    },
+    // Người hủy (Nhân viên)
+    cancel_person: {
+      type: String,
+      default: null,
+    },
+    // Người yêu cầu hủy ( Bác sĩ, khách hàng)
+    cancel_requester: {
       type: String,
       default: null,
     },
