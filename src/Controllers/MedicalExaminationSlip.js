@@ -20,6 +20,9 @@ export const getAllExamination = async (req, res) => {
       doctorId,
       staffId,
       clinicId,
+      day_booking,
+      day_welcome,
+      day_waiting,
     } = req.query;
     let query = {};
     const options = {
@@ -53,6 +56,62 @@ export const getAllExamination = async (req, res) => {
     if (status) {
       query.status = status;
     }
+
+    if (day_booking) {
+      const queryDate = new Date(day_booking);
+      const startOfDay = new Date(
+        queryDate.getFullYear(),
+        queryDate.getMonth(),
+        queryDate.getDate()
+      );
+      const endOfDay = new Date(
+        queryDate.getFullYear(),
+        queryDate.getMonth(),
+        queryDate.getDate() + 1
+      );
+
+      query.day_booking = {
+        $gte: startOfDay.toISOString(),
+        $lt: endOfDay.toISOString(),
+      };
+    }
+    if (day_welcome) {
+      const queryDate = new Date(day_welcome);
+      const startOfDay = new Date(
+        queryDate.getFullYear(),
+        queryDate.getMonth(),
+        queryDate.getDate()
+      );
+      const endOfDay = new Date(
+        queryDate.getFullYear(),
+        queryDate.getMonth(),
+        queryDate.getDate() + 1
+      );
+
+      query.day_welcome = {
+        $gte: startOfDay.toISOString(),
+        $lt: endOfDay.toISOString(),
+      };
+    }
+    if (day_waiting) {
+      const queryDate = new Date(day_waiting);
+      const startOfDay = new Date(
+        queryDate.getFullYear(),
+        queryDate.getMonth(),
+        queryDate.getDate()
+      );
+      const endOfDay = new Date(
+        queryDate.getFullYear(),
+        queryDate.getMonth(),
+        queryDate.getDate() + 1
+      );
+
+      query.day_waiting = {
+        $gte: startOfDay.toISOString(),
+        $lt: endOfDay.toISOString(),
+      };
+    }
+
     if (doctorId) {
       query.doctorId = doctorId;
     }
@@ -67,10 +126,7 @@ export const getAllExamination = async (req, res) => {
       query,
       options
     );
-    if (
-      !medicalExaminationSlips ||
-      medicalExaminationSlips?.docs.length === 0
-    ) {
+    if (!medicalExaminationSlips) {
       return res.status(404).json({
         message: "Không tìm thấy phiếu khám nào!",
       });
