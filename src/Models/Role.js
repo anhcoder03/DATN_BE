@@ -6,13 +6,22 @@ const roleSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    name: String,
+    name: {
+      type: String,
+      required: true,
+    },
     users: [
       {
         type: String,
         ref: "User",
       },
     ],
+    status: {
+      type: Number,
+      enum: [0, 1], //[0: Không hoạt động, 1: Hoạt động]
+      default: 1,
+    },
+    description: String,
   },
   { versionKey: false, timestamps: true }
 );

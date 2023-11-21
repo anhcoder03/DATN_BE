@@ -78,8 +78,12 @@ export const addRole = async (req, res) => {
       });
     }
 
+    const roleNameLowerCase = req.body.name.trim().toLowerCase();
+
     //kiem tra ten Vai tro co ton tai trong CSDL hay chua
-    const existingRole = await Role.findOne({ name: req.body.name });
+    const existingRole = await Role.findOne({
+      name: { $regex: new RegExp("^" + roleNameLowerCase + "$", "i") },
+    });
     if (existingRole) {
       return res.status(400).json({
         message: "Tên Vai trò đã tồn tại trong cơ sở dữ liệu!",
@@ -131,10 +135,16 @@ export const updateRole = async (req, res) => {
       new: true,
     });
     if (!role) {
-      return res.status(404).json({
+      return res.status(400).json({
         message: "Vai trò không tồn tại!",
       });
     }
+    // else if (role && role.name == "admin") {
+    //   return res.status(400).json({
+    //     message:
+    //       "Admin là chức danh cao nhất của hệ thống. Không thể chỉnh sửa!",
+    //   });
+    // }
     return res.json({
       message: "Cập nhật vai trò thành công!",
       role,
@@ -151,9 +161,15 @@ export const deleteRole = async (req, res) => {
   try {
     // Kiểm tra xem Role có tồn tại không
     const role = await Role.findById(id);
+    let roleNameLower = role && role.name ? role.name.toLowerCase() : undefined;
     if (!role) {
       return res.status(404).json({
         message: "Không tìm thấy Vai trò!",
+      });
+    }
+    if (role && role.name && roleNameLower === "admin") {
+      return res.status(400).json({
+        message: "Admin là chức danh cao nhất của hệ thống. Không thể xóa!",
       });
     }
 

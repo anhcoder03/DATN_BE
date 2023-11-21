@@ -121,6 +121,10 @@ export const updateUser = async (req, res) => {
       return res.status(404).json({
         message: "Vai trò mới không tồn tại!",
       });
+    } else if (newRole && newRole.status !== 1) {
+      return res.status(400).json({
+        message: "Vai trò này không hoạt động. Vui lòng chọn vai trò khác!",
+      });
     }
 
     const oldRole = await Role.findById(user.role);
@@ -170,6 +174,19 @@ export const signup = async (req, res) => {
     if (existingEmail) {
       return res.status(400).json({
         message: "Email đã tồn tại",
+      });
+    }
+
+    // check vai trò
+    const roleIsActive = await Role.findById({ _id: req.body.role });
+
+    if (!roleIsActive) {
+      return res.status(400).json({
+        message: "Không tìm thấy Vai trò!",
+      });
+    } else if (roleIsActive && roleIsActive.status !== 1) {
+      return res.status(400).json({
+        message: "Vai trò này không hoạt động. Vui lòng chọn vai trò khác!",
       });
     }
 
