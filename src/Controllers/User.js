@@ -1,6 +1,6 @@
 import Role from "../Models/Role.js";
 import User from "../Models/User.js";
-import userValidate from "../Schemas/User.js";
+import { userValidate, changePasswordValidate } from "../Schemas/User.js";
 import {
   generalAccessToken,
   generalRefreshToken,
@@ -290,6 +290,65 @@ export const refreshToken = async (req, res) => {
     return res.status(200).json({
       message: "Tạo accessToken mới thành công!",
       accessToken,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: error.message,
+    });
+  }
+};
+
+// Update Password
+export const changePassword = async (req, res) => {
+  const { _id, password, newPassword } = req.body;
+  try {
+    console.log("req.body:", req.body);
+    const { error } = changePasswordValidate.validate(req.body, {
+      abortEarly: false,
+    });
+    if (error) {
+      return res.status(401).json({
+        message: error.message,
+      });
+    }
+
+    //Kiểm tra tài khoản
+    const user = await User.findById(_id);
+    if (!user) {
+      return res.status(400).json({
+        message: `Tài khoản không tồn tại, vui lòng kiểm tra lại!`,
+      });
+    }
+
+    const checkPassword = await bcrypt.compare(password, user.password);
+    if (!checkPassword) {
+      return res.status(400).json({
+        message: `Mật khẩu cũ không đúng! Vui lòng nhập lại!`,
+      });
+    }
+
+    const sameOldPassword = await bcrypt.compare(newPassword, user.password);
+    if (sameOldPassword) {
+      return res.status(400).json({
+        message: "Mật khẩu mới không được trùng với mật khẩu cũ!",
+      });
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    const userChangedPassword = await User.findByIdAndUpdate(
+      { _id: user._id },
+      {
+        password: hashedPassword,
+      },
+      { new: true }
+    );
+    if (!userChangedPassword) {
+      return res.status(400).json({
+        message: "Đổi mật khẩu thất bại!",
+      });
+    }
+    return res.status(200).json({
+      message: "Đổi mật khẩu thành công!",
     });
   } catch (error) {
     return res.status(500).json({

@@ -9,13 +9,8 @@ import {
 import authenticate from "../Middlewares/authenticate.js";
 import { doctorAuth, generalAuth } from "../Middlewares/authorization.js";
 const router = express.Router();
-router.get(
-  "/medicalExaminationSlip",
-  authenticate,
-  generalAuth,
-  getAllExamination
-);
-router.get("/medicalExaminationSlip/:id", authenticate, generalAuth, getOne);
+router.get("/medicalExaminationSlip", authenticate, getAllExamination);
+router.get("/medicalExaminationSlip/:id", authenticate, getOne);
 router.post(
   "/medicalExaminationSlip",
   authenticate,

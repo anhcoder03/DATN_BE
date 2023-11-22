@@ -284,6 +284,11 @@ export const createMedicalExaminationSlip = async (req, res) => {
         customer: customer,
         examinationId: examination._id,
         doctorId: examination.doctorId || "",
+        content: `Khách hàng ${customer.name}-${
+          customer.phone
+        } đã đặt lịch khám vào lúc ${moment(examination.createdAt).format(
+          "HH:mm DD/MM/yyyy"
+        )}`,
         status: 0,
       });
 
@@ -476,8 +481,14 @@ export const updateExamination = async (req, res) => {
               name: customerData.name,
               phone: customerData.phone,
             },
+
             examinationId: examination._id,
             doctorId: examination.doctorId || "",
+            content: `Lịch khám ${examination._id} của khách hàng ${
+              customerData.name
+            }-${customerData.phone} đã bị hủy vào ${moment(
+              examination.updatedAt
+            ).format("HH:mm DD/MM/yyyy")}`,
             status: 0,
           });
 
@@ -533,6 +544,11 @@ export const updateExamination = async (req, res) => {
               name: customerData.name,
               phone: customerData.phone,
             },
+            content: `Phiếu khám ${examination._id} của khách hàng ${
+              customerData.name
+            }-${customerData.phone} đã bị hủy vào ${moment(
+              examination.updatedAt
+            ).format("HH:mm DD/MM/yyyy")}`,
             examinationId: examination._id,
             doctorId: examination.doctorId || "",
             status: 0,
@@ -562,7 +578,6 @@ export const updateExamination = async (req, res) => {
       }
     } else {
       if (services && status !== "cancel") {
-        console.log("Status:", status);
         const examination = await MedicalExaminationSlip.findByIdAndUpdate(id, {
           ...req.body,
         });
@@ -635,6 +650,11 @@ export const updateExamination = async (req, res) => {
               name: customerData.name,
               phone: customerData.phone,
             },
+            content: `Lịch khám ${examination._id} của khách hàng ${
+              customerData.name
+            }-${customerData.phone} đã bị hủy vào ${moment(
+              examination.updatedAt
+            ).format("HH:mm DD/MM/yyyy")}`,
             examinationId: examination._id,
             doctorId: examination.doctorId || "",
             status: 0,
@@ -692,6 +712,11 @@ export const updateExamination = async (req, res) => {
               name: customerData.name,
               phone: customerData.phone,
             },
+            content: `Phiêu khám ${examination._id} của khách hàng ${
+              customerData.name
+            }-${customerData.phone} đã bị hủy vào ${moment(
+              examination.updatedAt
+            ).format("HH:mm DD/MM/yyyy")}`,
             examinationId: examination._id,
             doctorId: examination.doctorId || "",
             status: 0,
@@ -705,6 +730,7 @@ export const updateExamination = async (req, res) => {
           });
         }
       } else {
+        console.log("status>>>:", status);
         const examination = await MedicalExaminationSlip.findByIdAndUpdate(
           id,
           {

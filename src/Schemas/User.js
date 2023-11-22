@@ -1,5 +1,5 @@
 import Joi from "joi";
-const userValidate = Joi.object({
+export const userValidate = Joi.object({
   _id: Joi.string(),
   name: Joi.string().required().trim().messages({
     "string.empty": "Tên không được để trống",
@@ -11,8 +11,11 @@ const userValidate = Joi.object({
       "string.empty": "Email không được để trống",
       "string.email": "Email không đúng định dạng",
     }),
-  password: Joi.string().required().trim().messages({
+  password: Joi.string().required().trim().min(6).max(15).messages({
     "string.empty": "Mật khẩu không được để trống",
+    "any.required": "Trường Mật khẩu là bắt buộc!",
+    "string.min": "Mật khẩu phải có ít nhất 6 ký tự",
+    "string.max": "Mật khẩu không được vượt quá 15 ký tự",
   }),
   phone: Joi.string()
     .required()
@@ -32,4 +35,20 @@ const userValidate = Joi.object({
     "string.empty": "Ảnh không được để trống",
   }),
 });
-export default userValidate;
+
+export const changePasswordValidate = Joi.object({
+  _id: Joi.string().required().messages({
+    "string.empty": "ID Người dùng không được để trống",
+    "any.required": "Trường ID Người dùng là bắt buộc!",
+  }),
+  password: Joi.string().required().trim().messages({
+    "string.empty": "Mật khẩu cũ không được để trống",
+    "any.required": "Trường  Mật khẩu cũ là bắt buộc!",
+  }),
+  newPassword: Joi.string().required().trim().min(6).max(15).messages({
+    "string.empty": "Mật khẩu mới không được để trống",
+    "any.required": "Trường Mật khẩu mới là bắt buộc!",
+    "string.min": "Mật khẩu mới phải có ít nhất 6 ký tự",
+    "string.max": "Mật khẩu mới không được vượt quá 15 ký tự",
+  }),
+});

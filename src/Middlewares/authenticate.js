@@ -21,9 +21,13 @@ const authenticate = async (req, res, next) => {
       });
     } catch (error) {
       if (error instanceof jwt.TokenExpiredError) {
-        throw new Error("Token đã hết hạn!");
+        return res.status(400).json({
+          message: "Token đã hết hạn!",
+        });
       } else {
-        throw new Error("Token không hợp lệ!");
+        return res.status(400).json({
+          message: "Token không hợp lệ!",
+        });
       }
     }
 
@@ -31,7 +35,9 @@ const authenticate = async (req, res, next) => {
     //get User
     const user = await User.findById(_id);
     if (!user) {
-      throw new Error("Không tìm thấy người dùng!");
+      return res.status(400).json({
+        message: "Không tìm thấy người dùng!",
+      });
     }
     req.user = user;
     next();

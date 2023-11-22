@@ -9,11 +9,14 @@ export const generalAuth = async (req, res, next) => {
     if (
       role.roleNumber === 0 ||
       role.roleNumber === 1 ||
-      role.roleNumber === 2
+      role.roleNumber === 2 ||
+      role.roleNumber === 3
     ) {
       next();
     } else {
-      throw new Error("Bạn không có quyền để thực hiện hành động này!");
+      return res.status(400).json({
+        message: "Bạn không có quyền để thực hiện hành động này!",
+      });
     }
   } catch (error) {
     return res.status(500).json({
@@ -29,7 +32,9 @@ export const adminAuth = async (req, res, next) => {
 
     const role = await Role.findById({ _id: user.role });
     if (role.roleNumber !== 0) {
-      throw new Error("Bạn không có quyền để thực hiện hành động này!");
+      return res.status(403).json({
+        message: "Bạn không có quyền để thực hiện hành động này!",
+      });
     }
 
     next();
@@ -45,12 +50,12 @@ export const doctorAuth = async (req, res, next) => {
   try {
     const user = req.user;
     const role = await Role.findById({ _id: user.role });
-    console.log("role.roleNumber:", role.roleNumber);
     if (role.roleNumber === 0 || role.roleNumber === 1) {
-      req.isDoctor = role.roleNumber;
-      // next();
+      next();
     } else {
-      throw new Error("Bạn không có quyền để thực hiện hành động này!");
+      return res.status(403).json({
+        message: "Bạn không có quyền để thực hiện hành động này!",
+      });
     }
   } catch (error) {
     return res.status(500).json({
@@ -59,7 +64,7 @@ export const doctorAuth = async (req, res, next) => {
   }
 };
 
-// Quyền Nhân viên
+// Quyền Nhân viên tiếp đón
 export const staffAuth = async (req, res, next) => {
   try {
     const user = req.user;
@@ -67,7 +72,28 @@ export const staffAuth = async (req, res, next) => {
     if (role.roleNumber === 0 || role.roleNumber === 2) {
       next();
     } else {
-      throw new Error("Bạn không có quyền để thực hiện hành động này!");
+      return res.status(403).json({
+        message: "Bạn không có quyền để thực hiện hành động này!",
+      });
+    }
+  } catch (error) {
+    return res.status(500).json({
+      message: error.message,
+    });
+  }
+};
+
+// Quyền Nhân viên bán thuốc
+export const sellerAuth = async (req, res, next) => {
+  try {
+    const user = req.user;
+    const role = await Role.findById({ _id: user.role });
+    if (role.roleNumber === 0 || role.roleNumber === 3) {
+      next();
+    } else {
+      return res.status(403).json({
+        message: "Bạn không có quyền để thực hiện hành động này!",
+      });
     }
   } catch (error) {
     return res.status(500).json({
