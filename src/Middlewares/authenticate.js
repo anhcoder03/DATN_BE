@@ -23,7 +23,7 @@ const authenticate = async (req, res, next) => {
       if (error instanceof jwt.TokenExpiredError) {
         throw new Error("Token đã hết hạn!");
       } else {
-        throw new Error("Token không hợp lệ.");
+        throw new Error("Token không hợp lệ!");
       }
     }
 
@@ -33,7 +33,6 @@ const authenticate = async (req, res, next) => {
     if (!user) {
       throw new Error("Không tìm thấy người dùng!");
     }
-
     req.user = user;
     next();
   } catch (error) {

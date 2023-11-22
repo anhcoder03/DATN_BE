@@ -10,6 +10,11 @@ const roleSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    roleNumber: {
+      type: Number,
+      required: true,
+      enum: [0, 1, 2], // enum: [0: admin, 1: "Bác sĩ", 2: "Nhân viên tiếp đón"]
+    },
     users: [
       {
         type: String,

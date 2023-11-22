@@ -4,6 +4,10 @@ const roleValidate = Joi.object({
   name: Joi.string().required().trim().messages({
     "string.empty": "Vui lòng nhập tên vai trò",
   }),
+  roleNumber: Joi.number().required().messages({
+    "number.empty": "Số vai trò không được để trống!",
+    "number.base": "Số vai trò phải là một số!",
+  }),
   status: Joi.number(),
   description: Joi.string(),
 });

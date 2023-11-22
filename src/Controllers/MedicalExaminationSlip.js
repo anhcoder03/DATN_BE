@@ -7,6 +7,9 @@ import { sendMessageToDevices } from "../sendMessageToDevices.js";
 import moment from "moment/moment.js";
 import Notification from "../Models/Notification.js";
 import { getNotifyTokens } from "./NotifyToken.js";
+import { doctorAuth } from "../Middlewares/authorization.js";
+import authenticate from "../Middlewares/authenticate.js";
+import Role from "../Models/Role.js";
 
 export const getAllExamination = async (req, res) => {
   try {
@@ -164,6 +167,7 @@ export const createMedicalExaminationSlip = async (req, res) => {
     const customerId = req.body.customerId;
     const notifyTokens = await getNotifyTokens();
     let waitingCode = req.body.waitingCode;
+
     if (!examinationId || examinationId === "") {
       // Nếu không có mã ID, tạo mã mới bằng cách kết hợp mã KH và mã tự sinh
       const lastExamination = await MedicalExaminationSlip.findOne(
@@ -363,6 +367,9 @@ export const updateExamination = async (req, res) => {
   try {
     const id = req.params.id;
     const services = req.body.examinationServiceId;
+    const user = req.user;
+
+    const { roleNumber } = await Role.findById({ _id: user.role });
     const dataExam = await MedicalExaminationSlip.findById(id);
     const notifyTokens = await getNotifyTokens();
     if (dataExam.status === "cancel") {
@@ -370,6 +377,7 @@ export const updateExamination = async (req, res) => {
         message: "Phiếu khám này đã hủy, không thể cập nhật",
       });
     }
+
     if (req.body.customerId && dataExam?.customerId !== req.body.customerId) {
       const customerData = await Customer.findById(req.body.customerId);
       const customer = {
@@ -378,32 +386,49 @@ export const updateExamination = async (req, res) => {
         phone: customerData.phone,
       };
 
+      // Nếu không phải trạng thái Hủy
       if (services && status !== "cancel") {
-        const examination = await MedicalExaminationSlip.findByIdAndUpdate(id, {
-          ...req.body,
-          customer,
-        });
-        for (let i = 0; i < services?.length; i++) {
-          const lastRecord = await ServiceByExamination.findOne().sort({
-            _id: -1,
+        console.log("status:", status);
+        if (roleNumber === 0 || roleNumber === 1 || roleNumber === 2) {
+          const examination = await MedicalExaminationSlip.findByIdAndUpdate(
+            id,
+            {
+              ...req.body,
+              customer,
+            }
+          );
+
+          for (let i = 0; i < services?.length; i++) {
+            const lastRecord = await ServiceByExamination.findOne().sort({
+              _id: -1,
+            });
+            let newId = generateNextId(
+              lastRecord ? lastRecord._id : null,
+              "DVK"
+            );
+            const serviceByExamination = new ServiceByExamination({
+              examinationId: examination._id,
+              service_examination: services[i],
+              doctorId: req.body.doctorId,
+              customerId: req.body.customerId,
+              staffId: req.body.staffId,
+              clinicId: req.body.clinicId,
+              id: newId,
+              paymentStatus: req.body.paymentStatus,
+            });
+            await serviceByExamination.save();
+          }
+          return res.json({
+            message: "Cập nhật phiếu khám thành công",
+            examination,
           });
-          let newId = generateNextId(lastRecord ? lastRecord._id : null, "DVK");
-          const serviceByExamination = new ServiceByExamination({
-            examinationId: examination._id,
-            service_examination: services[i],
-            doctorId: req.body.doctorId,
-            customerId: req.body.customerId,
-            staffId: req.body.staffId,
-            clinicId: req.body.clinicId,
-            id: newId,
-            paymentStatus: req.body.paymentStatus,
+        } else {
+          return res.status(403).json({
+            message: "Bạn không có quyền thực hiện hành động này!",
           });
-          await serviceByExamination.save();
         }
-        return res.json({
-          message: "Cập nhật phiếu khám thành công",
-          examination,
-        });
+
+        // Nếu là trạng thái Hủy
       } else if (status === "cancel") {
         if (dataExam.day_booking) {
           const examination = await MedicalExaminationSlip.findByIdAndUpdate(
@@ -521,6 +546,7 @@ export const updateExamination = async (req, res) => {
           });
         }
       } else {
+        console.log("status:", status);
         const examination = await MedicalExaminationSlip.findByIdAndUpdate(
           id,
           {
@@ -530,15 +556,17 @@ export const updateExamination = async (req, res) => {
         );
 
         return res.json({
-          message: "Cập nhật khách hàng thành công!",
+          message: "Cập nhật phiếu khám thành công!",
           examination,
         });
       }
     } else {
       if (services && status !== "cancel") {
+        console.log("Status:", status);
         const examination = await MedicalExaminationSlip.findByIdAndUpdate(id, {
           ...req.body,
         });
+
         for (let i = 0; i < services?.length; i++) {
           const lastRecord = await ServiceByExamination.findOne().sort({
             _id: -1,
@@ -677,10 +705,15 @@ export const updateExamination = async (req, res) => {
           });
         }
       } else {
-        const examination = await MedicalExaminationSlip.findByIdAndUpdate(id, {
-          ...req.body,
-        });
-
+        const examination = await MedicalExaminationSlip.findByIdAndUpdate(
+          id,
+          {
+            ...req.body,
+            day_welcome:
+              status === "recetion" ? new Date().toISOString() : null,
+          },
+          { new: true }
+        );
         return res.json({
           message: "Cập nhật phiếu khám thành công!",
           examination,
@@ -689,7 +722,7 @@ export const updateExamination = async (req, res) => {
     }
   } catch (error) {
     return res.status(500).json({
-      message: "Lỗi khi cập nhật khách hàng: " + error.message,
+      message: "Lỗi khi cập nhật phiếu khám: " + error.message,
     });
   }
 };

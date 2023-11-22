@@ -227,7 +227,7 @@ export const signin = async (req, res) => {
     }
 
     const user = await User.findOne({ email }).populate([
-      { path: "role", select: "name" },
+      { path: "role", select: "name roleNumber" },
     ]);
     if (!user) {
       return res.status(400).json({
