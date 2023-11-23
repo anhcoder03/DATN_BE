@@ -254,7 +254,7 @@ export const signin = async (req, res) => {
     });
 
     return res.status(201).json({
-      message: "Đăng nhập thành công ",
+      message: "Đăng nhập thành công!",
       accessToken,
       refreshToken,
       user,
@@ -302,7 +302,6 @@ export const refreshToken = async (req, res) => {
 export const changePassword = async (req, res) => {
   const { _id, password, newPassword } = req.body;
   try {
-    console.log("req.body:", req.body);
     const { error } = changePasswordValidate.validate(req.body, {
       abortEarly: false,
     });
@@ -349,6 +348,7 @@ export const changePassword = async (req, res) => {
     }
     return res.status(200).json({
       message: "Đổi mật khẩu thành công!",
+      user: userChangedPassword,
     });
   } catch (error) {
     return res.status(500).json({

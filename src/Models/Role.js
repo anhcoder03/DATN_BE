@@ -13,7 +13,7 @@ const roleSchema = new mongoose.Schema(
     roleNumber: {
       type: Number,
       required: true,
-      enum: [0, 1, 2, 3], // enum: [0: admin, 1: "Bác sĩ", 2: "Nhân viên tiếp đón", 3: "Nhân viên bán thuốc"]
+      enum: [0, 1, 2, 3, 4], // enum: [0: "Admin", 1: "Bác sĩ", 2: "Nhân viên tiếp đón", 3: "Nhân viên bán hàng", 4: "Người dùng thường(Khách hàng)"]
     },
     users: [
       {

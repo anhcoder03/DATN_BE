@@ -202,7 +202,7 @@ export const createPrescription = async (req, res) => {
       customer,
       creatorId: prescription.doctorId,
       customerId: medicalExaminationSlip
-        ? medicalExaminationSlip.customerId
+        ? medicalExaminationSlip?.customerId
         : "",
       prescriptionId: prescription._id,
       medicines: orderMedicines,
@@ -310,7 +310,7 @@ export const updatePrescription = async (req, res) => {
     // Tạo Order
     const newOrder = {
       customer,
-      customerId: medicalExaminationSlip.customerId,
+      customerId: medicalExaminationSlip?.customerId,
       prescriptionId: prescription._id,
       medicines: orderMedicines,
       totalAmount: handleTotalOrder(orderMedicines),

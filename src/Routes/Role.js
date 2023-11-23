@@ -11,8 +11,8 @@ import authenticate from "../Middlewares/authenticate.js";
 import { adminAuth } from "../Middlewares/authorization.js";
 
 const router = express.Router();
-router.get("/role", authenticate, getAllRole);
-router.get("/role/:id", authenticate, getOneRole);
+router.get("/role", authenticate, adminAuth, getAllRole);
+router.get("/role/:id", authenticate, adminAuth, getOneRole);
 router.post("/role", authenticate, adminAuth, addRole);
 router.delete("/role/:id", authenticate, adminAuth, deleteRole);
 router.put("/role/:id", authenticate, adminAuth, updateRole);

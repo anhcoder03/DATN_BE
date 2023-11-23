@@ -9,14 +9,16 @@ import {
   signup,
   updateUser,
 } from "../Controllers/User.js";
+import { adminAuth, generalAuth } from "../Middlewares/authorization.js";
+import authenticate from "../Middlewares/authenticate.js";
 
 const router = express.Router();
-router.get("/user", getAllUser);
-router.get("/user/:id", getOneUser);
+router.get("/user", authenticate, generalAuth, getAllUser);
+router.get("/user/:id", authenticate, generalAuth, getOneUser);
 router.post("/signup", signup);
 router.post("/signin", signin);
 router.post("/refreshToken", refreshToken);
-router.delete("/user/:id", deleteUser);
-router.put("/user/:id", updateUser);
-router.put("/changePassword", changePassword);
+router.delete("/user/:id", authenticate, adminAuth, deleteUser);
+router.put("/user/:id", authenticate, updateUser);
+router.put("/changePassword", authenticate, changePassword);
 export default router;
