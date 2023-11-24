@@ -1,14 +1,14 @@
-import Role from "../Models/Role.js";
-import User from "../Models/User.js";
-import { userValidate, changePasswordValidate } from "../Schemas/User.js";
+import Role from '../Models/Role.js';
+import User from '../Models/User.js';
+import { userValidate, changePasswordValidate } from '../Schemas/User.js';
 import {
   generalAccessToken,
   generalRefreshToken,
   generalVerifyRefreshToken,
-} from "../Services/jwtService.js";
-import bcrypt from "bcryptjs";
-import dotenv from "dotenv";
-import generateNextId from "../Utils/generateNextId.js";
+} from '../Services/jwtService.js';
+import bcrypt from 'bcryptjs';
+import dotenv from 'dotenv';
+import generateNextId from '../Utils/generateNextId.js';
 dotenv.config();
 
 export const getAllUser = async (req, res) => {
@@ -16,24 +16,24 @@ export const getAllUser = async (req, res) => {
     const {
       _page = 1,
       _limit = 10,
-      _sort = "createdAt",
-      _order = "desc",
+      _sort = 'createdAt',
+      _order = 'desc',
     } = req.query;
     const options = {
       page: _page,
       limit: _limit,
       sort: {
-        [_sort]: _order === "asc" ? 1 : -1,
+        [_sort]: _order === 'asc' ? 1 : -1,
       },
     };
     const users = await User.paginate({}, options);
     if (!users) {
       return res.status(404).json({
-        message: "Tài nguyên không tồn tại!",
+        message: 'Tài nguyên không tồn tại!',
       });
     }
     return res.json({
-      message: "Lấy tài nguyên thành công!",
+      message: 'Lấy tài nguyên thành công!',
       users,
     });
   } catch (error) {
@@ -45,14 +45,14 @@ export const getAllUser = async (req, res) => {
 
 export const getOneUser = async (req, res) => {
   try {
-    const user = await User.findById(req.params.id).populate("role");
+    const user = await User.findById(req.params.id).populate('role');
     if (!user) {
       return res.status(400).json({
-        message: "Tài nguyên không tồn tại!",
+        message: 'Tài nguyên không tồn tại!',
       });
     }
     return res.json({
-      message: "Lấy tài nguyên thành công!",
+      message: 'Lấy tài nguyên thành công!',
       user,
     });
   } catch (error) {
@@ -72,11 +72,12 @@ export const deleteUser = async (req, res) => {
     });
     if (!user) {
       return res.status(400).json({
-        message: "Người dùng không tồn tại!",
+        message: 'Người dùng không tồn tại!',
       });
     }
     return res.json({
-      message: "Xoá người dùng thành công!",
+      message: 'Xoá người dùng thành công!',
+      user,
     });
   } catch (error) {
     return res.status(404).json({
@@ -100,7 +101,7 @@ export const updateUser = async (req, res) => {
     const user = await User.findById(id);
     if (!user) {
       return res.status(404).json({
-        message: "Người dùng không tồn tại!",
+        message: 'Người dùng không tồn tại!',
       });
     }
 
@@ -112,18 +113,18 @@ export const updateUser = async (req, res) => {
 
     if (existingEmail) {
       return res.status(400).json({
-        message: "Email này đã tồn tại!",
+        message: 'Email này đã tồn tại!',
       });
     }
 
     const newRole = await Role.findById(role);
     if (!newRole) {
       return res.status(404).json({
-        message: "Vai trò mới không tồn tại!",
+        message: 'Vai trò mới không tồn tại!',
       });
     } else if (newRole && newRole.status !== 1) {
       return res.status(400).json({
-        message: "Vai trò này không hoạt động. Vui lòng chọn vai trò khác!",
+        message: 'Vai trò này không hoạt động. Vui lòng chọn vai trò khác!',
       });
     }
 
@@ -142,12 +143,12 @@ export const updateUser = async (req, res) => {
 
     if (!userUpdated) {
       return res.status(400).json({
-        message: "Cập nhật thất bại!",
+        message: 'Cập nhật thất bại!',
       });
     }
 
     return res.status(200).json({
-      message: "Cập nhật thành công !",
+      message: 'Cập nhật thành công !',
       user: userUpdated,
     });
   } catch (error) {
@@ -173,7 +174,7 @@ export const signup = async (req, res) => {
     const existingEmail = await User.findOne({ email: req.body.email });
     if (existingEmail) {
       return res.status(400).json({
-        message: "Email đã tồn tại",
+        message: 'Email đã tồn tại',
       });
     }
 
@@ -182,11 +183,11 @@ export const signup = async (req, res) => {
 
     if (!roleIsActive) {
       return res.status(400).json({
-        message: "Không tìm thấy Vai trò!",
+        message: 'Không tìm thấy Vai trò!',
       });
     } else if (roleIsActive && roleIsActive.status !== 1) {
       return res.status(400).json({
-        message: "Vai trò này không hoạt động. Vui lòng chọn vai trò khác!",
+        message: 'Vai trò này không hoạt động. Vui lòng chọn vai trò khác!',
       });
     }
 
@@ -194,7 +195,7 @@ export const signup = async (req, res) => {
 
     // custom _id
     const lastUser = await User.findOne({}, {}, { sort: { _id: -1 } });
-    const userId = generateNextId(lastUser ? lastUser._id : null, "ND");
+    const userId = generateNextId(lastUser ? lastUser._id : null, 'ND');
 
     const user = await User.create({
       ...req.body,
@@ -206,7 +207,7 @@ export const signup = async (req, res) => {
       $addToSet: { users: user._id },
     });
     return res.json({
-      message: "Tạo tài khoản mới thành công!",
+      message: 'Tạo tài khoản mới thành công!',
       user,
     });
   } catch (error) {
@@ -222,23 +223,23 @@ export const signin = async (req, res) => {
     if (!email || !password) {
       return res.status(400).json({
         success: false,
-        message: "Vui lòng điền đầy đủ thông tin",
+        message: 'Vui lòng điền đầy đủ thông tin',
       });
     }
 
     const user = await User.findOne({ email }).populate([
-      { path: "role", select: "name roleNumber" },
+      { path: 'role', select: 'name roleNumber' },
     ]);
     if (!user) {
       return res.status(400).json({
-        message: "Sai tài khoản đăng nhập!",
+        message: 'Sai tài khoản đăng nhập!',
       });
     }
 
     const hashedPassword = await bcrypt.compare(password, user.password);
     if (!hashedPassword) {
       return res.status(400).json({
-        message: "Mật khảu không khớp!",
+        message: 'Mật khảu không khớp!',
       });
     }
     user.password = undefined;
@@ -254,7 +255,7 @@ export const signin = async (req, res) => {
     });
 
     return res.status(201).json({
-      message: "Đăng nhập thành công!",
+      message: 'Đăng nhập thành công ',
       accessToken,
       refreshToken,
       user,
@@ -269,7 +270,7 @@ export const signin = async (req, res) => {
 export const refreshToken = async (req, res) => {
   const { refreshToken } = req.body;
   if (!refreshToken) {
-    return res.status(400).json({ message: "Không có refreshToken!" });
+    return res.status(400).json({ message: 'Không có refreshToken!' });
   }
   try {
     const {
@@ -282,13 +283,13 @@ export const refreshToken = async (req, res) => {
     const user = await User.findById(_id);
 
     if (!user) {
-      return res.status(404).json({ message: "Không tìm thấy người dùng!" });
+      return res.status(404).json({ message: 'Không tìm thấy người dùng!' });
     }
 
     const accessToken = generalAccessToken({ _id: user._id });
 
     return res.status(200).json({
-      message: "Tạo accessToken mới thành công!",
+      message: 'Tạo accessToken mới thành công!',
       accessToken,
     });
   } catch (error) {
@@ -329,7 +330,7 @@ export const changePassword = async (req, res) => {
     const sameOldPassword = await bcrypt.compare(newPassword, user.password);
     if (sameOldPassword) {
       return res.status(400).json({
-        message: "Mật khẩu mới không được trùng với mật khẩu cũ!",
+        message: 'Mật khẩu mới không được trùng với mật khẩu cũ!',
       });
     }
 
@@ -339,15 +340,15 @@ export const changePassword = async (req, res) => {
       {
         password: hashedPassword,
       },
-      { new: true }
+      { new: true },
     );
     if (!userChangedPassword) {
       return res.status(400).json({
-        message: "Đổi mật khẩu thất bại!",
+        message: 'Đổi mật khẩu thất bại!',
       });
     }
     return res.status(200).json({
-      message: "Đổi mật khẩu thành công!",
+      message: 'Đổi mật khẩu thành công!',
       user: userChangedPassword,
     });
   } catch (error) {
