@@ -33,7 +33,7 @@ export const adminAuth = async (req, res, next) => {
     const role = await Role.findById({ _id: user.role });
     if (role.roleNumber !== 0) {
       return res.status(403).json({
-        message: "Bạn không có quyền để thực hiện hành động này!",
+        message: "Bạn phải có quyền Quản trị viên để thực hiện hành động này!",
       });
     }
 
@@ -54,7 +54,7 @@ export const doctorAuth = async (req, res, next) => {
       next();
     } else {
       return res.status(403).json({
-        message: "Bạn không có quyền để thực hiện hành động này!",
+        message: "Bạn không có quyền Bác sĩ để thực hiện hành động này!",
       });
     }
   } catch (error) {
@@ -73,7 +73,8 @@ export const staffAuth = async (req, res, next) => {
       next();
     } else {
       return res.status(403).json({
-        message: "Bạn không có quyền để thực hiện hành động này!",
+        message:
+          "Bạn phải có quyền Nhân viên tiếp đón để thực hiện hành động này!",
       });
     }
   } catch (error) {
@@ -83,7 +84,7 @@ export const staffAuth = async (req, res, next) => {
   }
 };
 
-// Quyền Nhân viên bán thuốc
+// Quyền Nhân viên bán hàng
 export const sellerAuth = async (req, res, next) => {
   try {
     const user = req.user;
@@ -92,7 +93,8 @@ export const sellerAuth = async (req, res, next) => {
       next();
     } else {
       return res.status(403).json({
-        message: "Bạn không có quyền để thực hiện hành động này!",
+        message:
+          "Bạn phải có quyền Nhân viên bán hàng để thực hiện hành động này!",
       });
     }
   } catch (error) {

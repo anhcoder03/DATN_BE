@@ -37,7 +37,15 @@ const MedicalExaminationSlipSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ["booking", "recetion", "waiting", "running", "done", "cancel"],
+      enum: [
+        "booking", // Đặt Lịch khám
+        "recetion", // Tiếp đón
+        "waiting", // Chờ khám
+        "running", // Đang khám
+        "done", // Đã khám
+        "cancel", // Hủy khám
+        "cancel_schedule", // Hủy lịch
+      ],
     },
     staffId: {
       // nhân viên tiếp đón | người tạo phiếu

@@ -7,8 +7,6 @@ import { sendMessageToDevices } from "../sendMessageToDevices.js";
 import moment from "moment/moment.js";
 import Notification from "../Models/Notification.js";
 import { getNotifyTokens } from "./NotifyToken.js";
-import { doctorAuth } from "../Middlewares/authorization.js";
-import authenticate from "../Middlewares/authenticate.js";
 import Role from "../Models/Role.js";
 
 export const getAllExamination = async (req, res) => {
@@ -162,155 +160,162 @@ export const getAllExamination = async (req, res) => {
 
 export const createMedicalExaminationSlip = async (req, res) => {
   try {
-    // Kiểm tra xem có mã ID được cung cấp hay không
-    let examinationId = req.body._id;
-    const customerId = req.body.customerId;
-    const notifyTokens = await getNotifyTokens();
-    let waitingCode = req.body.waitingCode;
+    const roleAuth = await Role.findById(req.user.role);
+    if (roleAuth.roleNumber === 0 || roleAuth.roleNumber === 2) {
+      // Kiểm tra xem có mã ID được cung cấp hay không
+      let examinationId = req.body._id;
+      const customerId = req.body.customerId;
+      const notifyTokens = await getNotifyTokens();
+      let waitingCode = req.body.waitingCode;
 
-    if (!examinationId || examinationId === "") {
-      // Nếu không có mã ID, tạo mã mới bằng cách kết hợp mã KH và mã tự sinh
-      const lastExamination = await MedicalExaminationSlip.findOne(
-        {},
-        {},
-        { sort: { _id: -1 } }
-      );
-      examinationId = generateNextId(
-        lastExamination ? lastExamination._id : null,
-        "PK"
-      );
+      if (!examinationId || examinationId === "") {
+        // Nếu không có mã ID, tạo mã mới bằng cách kết hợp mã KH và mã tự sinh
+        const lastExamination = await MedicalExaminationSlip.findOne(
+          {},
+          {},
+          { sort: { _id: -1 } }
+        );
+        examinationId = generateNextId(
+          lastExamination ? lastExamination._id : null,
+          "PK"
+        );
 
-      // Tạo mã chờ khám
-      const lastWaitingCode = await MedicalExaminationSlip.findOne(
-        {},
-        {},
-        { sort: { waitingCode: -1 } }
-      );
+        // Tạo mã chờ khám
+        const lastWaitingCode = await MedicalExaminationSlip.findOne(
+          {},
+          {},
+          { sort: { waitingCode: -1 } }
+        );
 
-      waitingCode = generateNextId(
-        lastWaitingCode ? lastWaitingCode.waitingCode : null,
-        "CK"
-      );
-    } else {
-      const isExiting = await MedicalExaminationSlip.findById(examinationId);
-      if (isExiting) {
-        return res.status(403).json({
-          message: "Mã bệnh nhân đã tồn tại",
-        });
+        waitingCode = generateNextId(
+          lastWaitingCode ? lastWaitingCode.waitingCode : null,
+          "CK"
+        );
+      } else {
+        const isExiting = await MedicalExaminationSlip.findById(examinationId);
+        if (isExiting) {
+          return res.status(400).json({
+            message: "Mã bệnh nhân đã tồn tại",
+          });
+        }
       }
-    }
 
-    const customerData = await Customer.findById(customerId);
-    const customer = {
-      _id: customerData._id,
-      name: customerData.name,
-      phone: customerData.phone,
-    };
-    const data = req.body;
-    const { examinationServiceId, ...rest } = data;
-    if (req.body.status == "recetion") {
-      const examination = await MedicalExaminationSlip.create({
-        ...rest,
-        customer,
-        id: examinationId,
-        waitingCode,
-      });
-
-      await Customer.findByIdAndUpdate(customerId, {
-        $addToSet: { examination_history: examination._id },
-      });
-      const services = examinationServiceId;
-      for (let i = 0; i < services?.length; i++) {
-        const lastRecord = await ServiceByExamination.findOne().sort({
-          _id: -1,
+      const customerData = await Customer.findById(customerId);
+      const customer = {
+        _id: customerData._id,
+        name: customerData.name,
+        phone: customerData.phone,
+      };
+      const data = req.body;
+      const { examinationServiceId, ...rest } = data;
+      if (req.body.status == "recetion") {
+        const examination = await MedicalExaminationSlip.create({
+          ...rest,
+          customer,
+          id: examinationId,
+          waitingCode,
         });
-        let newId = generateNextId(lastRecord ? lastRecord._id : null, "DVK");
 
-        const serviceByExamination = new ServiceByExamination({
+        await Customer.findByIdAndUpdate(customerId, {
+          $addToSet: { examination_history: examination._id },
+        });
+        const services = examinationServiceId;
+        for (let i = 0; i < services?.length; i++) {
+          const lastRecord = await ServiceByExamination.findOne().sort({
+            _id: -1,
+          });
+          let newId = generateNextId(lastRecord ? lastRecord._id : null, "DVK");
+
+          const serviceByExamination = new ServiceByExamination({
+            examinationId: examination._id,
+            service_examination: services[i],
+            doctorId: req.body.doctorId,
+            customerId: req.body.customerId,
+            staffId: req.body.staffId,
+            clinicId: req.body.clinicId,
+            id: newId,
+            paymentStatus: req.body.paymentStatus,
+          });
+          await serviceByExamination.save();
+        }
+        return res.status(200).json({
+          message: "Tạo phiếu khám thành công",
+          examination,
+        });
+      } else if (req.body.status === "booking") {
+        const examination = await MedicalExaminationSlip.create({
+          ...rest,
+          customer,
+          id: examinationId,
+          waitingCode,
+        });
+        await Customer.findByIdAndUpdate(customerId, {
+          $addToSet: { examination_history: examination._id },
+        });
+
+        if (notifyTokens.length) {
+          await sendMessageToDevices(
+            notifyTokens,
+            `Phòng khám Medipro`,
+            `Khách hàng ${customer.name}-${
+              customer.phone
+            } đã đặt lịch khám vào lúc ${moment(examination.createdAt).format(
+              "HH:mm DD/MM/yyyy"
+            )}`
+          );
+        }
+
+        // Tạo mới thông báo model Notification
+
+        const lastNotification = await Notification.findOne(
+          {},
+          {},
+          { sort: { _id: -1 } }
+        );
+        const notificationId = generateNextId(
+          lastNotification ? lastNotification._id : null,
+          "TB"
+        );
+
+        const newNotification = new Notification({
+          _id: notificationId,
+          categoryNotification: "booking",
+          customerId: customerData._id,
+          customer: customer,
           examinationId: examination._id,
-          service_examination: services[i],
-          doctorId: req.body.doctorId,
-          customerId: req.body.customerId,
-          staffId: req.body.staffId,
-          clinicId: req.body.clinicId,
-          id: newId,
-          paymentStatus: req.body.paymentStatus,
-        });
-        await serviceByExamination.save();
-      }
-      return res.json({
-        message: "Tạo phiếu khám thành công",
-        examination,
-      });
-    } else if (req.body.status === "booking") {
-      const examination = await MedicalExaminationSlip.create({
-        ...rest,
-        customer,
-        id: examinationId,
-        waitingCode,
-      });
-      await Customer.findByIdAndUpdate(customerId, {
-        $addToSet: { examination_history: examination._id },
-      });
-
-      if (notifyTokens.length) {
-        await sendMessageToDevices(
-          notifyTokens,
-          `Phòng khám Medipro`,
-          `Khách hàng ${customer.name}-${
+          doctorId: examination.doctorId || "",
+          content: `Khách hàng ${customer.name}-${
             customer.phone
           } đã đặt lịch khám vào lúc ${moment(examination.createdAt).format(
             "HH:mm DD/MM/yyyy"
-          )}`
-        );
+          )}`,
+          status: 0,
+        });
+
+        await newNotification.save();
+
+        return res.status(200).json({
+          message: "Đặt lịch khám thành công!",
+          examination,
+        });
+      } else {
+        // const examination = await MedicalExaminationSlip.create({
+        //   ...rest,
+        //   customer,
+        //   id: examinationId,
+        //   waitingCode,
+        // });
+        // await Customer.findByIdAndUpdate(customerId, {
+        //   $addToSet: { examination_history: examination._id },
+        // });
+        return res.status(400).json({
+          message:
+            "Trạng thái phiếu khám không hợp lệ! Chỉ có thể chọn trạng thái Đặt lịch hoặc Tiếp đón",
+        });
       }
-
-      // Tạo mới thông báo model Notification
-
-      const lastNotification = await Notification.findOne(
-        {},
-        {},
-        { sort: { _id: -1 } }
-      );
-      const notificationId = generateNextId(
-        lastNotification ? lastNotification._id : null,
-        "TB"
-      );
-
-      const newNotification = new Notification({
-        _id: notificationId,
-        categoryNotification: "booking",
-        customerId: customerData._id,
-        customer: customer,
-        examinationId: examination._id,
-        doctorId: examination.doctorId || "",
-        content: `Khách hàng ${customer.name}-${
-          customer.phone
-        } đã đặt lịch khám vào lúc ${moment(examination.createdAt).format(
-          "HH:mm DD/MM/yyyy"
-        )}`,
-        status: 0,
-      });
-
-      await newNotification.save();
-
-      return res.json({
-        message: "Đặt lịch thành công!",
-        examination,
-      });
     } else {
-      const examination = await MedicalExaminationSlip.create({
-        ...rest,
-        customer,
-        id: examinationId,
-        waitingCode,
-      });
-      await Customer.findByIdAndUpdate(customerId, {
-        $addToSet: { examination_history: examination._id },
-      });
-      return res.json({
-        message: "Tạo phiếu khám thành công",
-        examination,
+      return res.status(403).json({
+        message: "Bạn không có quyền thực hiện hành động này!",
       });
     }
   } catch (error) {
@@ -374,15 +379,55 @@ export const updateExamination = async (req, res) => {
     const services = req.body.examinationServiceId;
     const user = req.user;
 
+    // Tìm ra Vai trò của User
     const { roleNumber } = await Role.findById({ _id: user.role });
+
+    // Nếu roleNumber = 1 Nghĩa là Quyền Bác sĩ) - không được thực hiện các quyền: Đặt lịch, Tiếp đón, Hủy lịch
+    // Nếu roleNumber = 3 (Nghĩa là Quyền Nhân viên bán thuốc) - không được thực hiện tất cả các quyền trong Phiếu khám
+    // Nếu roleNumber = 2 (Nghĩa là quyền Nhân viên tiếp đón)
+    // Thì sẽ không có quyền thực hiện hành động nào có status !== booking hoặc status !== recetion  hoặc status !== cancel_schedule
+    // (Nghĩa là không được thực hiện quyền gì ngoài Đặt lịch và Tiếp đón và Hủy lịch)
+    if (
+      (roleNumber === 1 && status == "booking") ||
+      (roleNumber === 1 && status === "recetion") ||
+      (roleNumber === 1 && status === "waiting") ||
+      (roleNumber === 1 && status === "cancel_schedule") ||
+      (roleNumber === 3 && status == "booking") ||
+      (roleNumber === 3 && status == "recetion") ||
+      (roleNumber === 3 && status == "waiting") ||
+      (roleNumber === 3 && status == "running") ||
+      (roleNumber === 3 && status == "done") ||
+      (roleNumber === 3 && status == "cancel") ||
+      (roleNumber === 3 && status == "cancel_schedule") ||
+      (roleNumber === 2 &&
+        status !== "booking" &&
+        status !== "recetion" &&
+        status !== "cancel_schedule" &&
+        status !== "waiting")
+    ) {
+      return res.status(403).json({
+        message: "Bạn không có quyền thực hiện hành động này!",
+      });
+    }
+
     const dataExam = await MedicalExaminationSlip.findById(id);
     const notifyTokens = await getNotifyTokens();
+
+    // Nếu trạng thái trước khi cập nhật của Phiếu khám đã Hủy
     if (dataExam.status === "cancel") {
       return res.status(400).json({
         message: "Phiếu khám này đã hủy, không thể cập nhật",
       });
     }
 
+    // Nếu trạng thái trước khi cập nhật của Lịch khám đã Hủy
+    if (dataExam.status === "cancel_schedule") {
+      return res.status(400).json({
+        message: "Lịch khám này đã hủy, không thể cập nhật",
+      });
+    }
+
+    // Nếu cập nhật lại customerId (Cập nhật Khách hàng khác trong Phiếu khám)
     if (req.body.customerId && dataExam?.customerId !== req.body.customerId) {
       const customerData = await Customer.findById(req.body.customerId);
       const customer = {
@@ -391,178 +436,170 @@ export const updateExamination = async (req, res) => {
         phone: customerData.phone,
       };
 
-      // Nếu không phải trạng thái Hủy
-      if (services && status !== "cancel") {
-        console.log("status:", status);
-        if (roleNumber === 0 || roleNumber === 1 || roleNumber === 2) {
-          const examination = await MedicalExaminationSlip.findByIdAndUpdate(
-            id,
-            {
-              ...req.body,
-              customer,
-            }
-          );
+      // Nếu không phải trạng thái Hủy và có Dịch vụ khám
+      if (
+        (services && status !== "cancel") ||
+        (services && status !== "cancel_schedule")
+      ) {
+        const examination = await MedicalExaminationSlip.findByIdAndUpdate(id, {
+          ...req.body,
+          customer,
+        });
 
-          for (let i = 0; i < services?.length; i++) {
-            const lastRecord = await ServiceByExamination.findOne().sort({
-              _id: -1,
-            });
-            let newId = generateNextId(
-              lastRecord ? lastRecord._id : null,
-              "DVK"
-            );
-            const serviceByExamination = new ServiceByExamination({
-              examinationId: examination._id,
-              service_examination: services[i],
-              doctorId: req.body.doctorId,
-              customerId: req.body.customerId,
-              staffId: req.body.staffId,
-              clinicId: req.body.clinicId,
-              id: newId,
-              paymentStatus: req.body.paymentStatus,
-            });
-            await serviceByExamination.save();
-          }
-          return res.json({
-            message: "Cập nhật phiếu khám thành công",
-            examination,
+        for (let i = 0; i < services?.length; i++) {
+          const lastRecord = await ServiceByExamination.findOne().sort({
+            _id: -1,
           });
-        } else {
-          return res.status(403).json({
-            message: "Bạn không có quyền thực hiện hành động này!",
+          let newId = generateNextId(lastRecord ? lastRecord._id : null, "DVK");
+          const serviceByExamination = new ServiceByExamination({
+            examinationId: examination._id,
+            service_examination: services[i],
+            doctorId: req.body.doctorId,
+            customerId: req.body.customerId,
+            staffId: req.body.staffId,
+            clinicId: req.body.clinicId,
+            id: newId,
+            paymentStatus: req.body.paymentStatus,
           });
+          await serviceByExamination.save();
         }
+        return res.json({
+          message: "Cập nhật Phiếu khám thành công!",
+          examination,
+        });
 
         // Nếu là trạng thái Hủy
-      } else if (status === "cancel") {
-        if (dataExam.day_booking) {
-          const examination = await MedicalExaminationSlip.findByIdAndUpdate(
-            id,
-            {
-              ...req.body,
-              day_cancel: new Date().toISOString(),
-            },
-            { new: true }
-          );
+      }
+      // Nếu status = cancel ( Trạng thái là Hủy Phiếu Khám)
+      else if (status === "cancel") {
+        const examination = await MedicalExaminationSlip.findByIdAndUpdate(
+          id,
+          {
+            ...req.body,
+            day_cancel: new Date().toISOString(),
+          },
+          { new: true }
+        );
 
-          const customerData = await Customer.findById(examination.customerId);
+        const customerData = await Customer.findById(examination.customerId);
 
-          // Gửi thông báo đã hủy Lịch
-          if (notifyTokens.length) {
-            await sendMessageToDevices(
-              notifyTokens,
-              `Phòng khám Medipro`,
-              `Lịch khám ${examination._id} của khách hàng ${
-                customerData.name
-              }-${customerData.phone} đã bị hủy vào ${moment(
-                examination.updatedAt
-              ).format("HH:mm DD/MM/yyyy")}`
-            );
-          }
-
-          // Tạo mới thông báo model Notification
-
-          const lastNotification = await Notification.findOne(
-            {},
-            {},
-            { sort: { _id: -1 } }
-          );
-          const notificationId = generateNextId(
-            lastNotification ? lastNotification._id : null,
-            "TB"
-          );
-
-          const newNotification = new Notification({
-            _id: notificationId,
-            categoryNotification: "cancel_schedule",
-            customerId: customerData._id,
-            customer: {
-              _id: customerData._id,
-              name: customerData.name,
-              phone: customerData.phone,
-            },
-
-            examinationId: examination._id,
-            doctorId: examination.doctorId || "",
-            content: `Lịch khám ${examination._id} của khách hàng ${
+        // Gửi thông báo đã hủy Lịch
+        if (notifyTokens.length) {
+          await sendMessageToDevices(
+            notifyTokens,
+            `Phòng khám Medipro`,
+            `Phiếu khám ${examination._id} của khách hàng ${
               customerData.name
             }-${customerData.phone} đã bị hủy vào ${moment(
               examination.updatedAt
-            ).format("HH:mm DD/MM/yyyy")}`,
-            status: 0,
-          });
-
-          await newNotification.save();
-
-          return res.json({
-            message: "Hủy Lịch khám thành công!",
-            examination,
-          });
-        } else {
-          const examination = await MedicalExaminationSlip.findByIdAndUpdate(
-            id,
-            {
-              ...req.body,
-              day_cancel: new Date().toISOString(),
-            },
-            { new: true }
+            ).format("HH:mm DD/MM/yyyy")}`
           );
-
-          const customerData = await Customer.findById(examination.customerId);
-
-          // Gửi thông báo đã hủy Lịch
-          if (notifyTokens.length) {
-            await sendMessageToDevices(
-              notifyTokens,
-              `Phòng khám Medipro`,
-              `Phiếu khám ${examination._id} của khách hàng ${
-                customerData.name
-              }-${customerData.phone} đã bị hủy vào ${moment(
-                examination.updatedAt
-              ).format("HH:mm DD/MM/yyyy")}`
-            );
-          }
-
-          // Tạo mới thông báo model Notification
-
-          const lastNotification = await Notification.findOne(
-            {},
-            {},
-            { sort: { _id: -1 } }
-          );
-          const notificationId = generateNextId(
-            lastNotification ? lastNotification._id : null,
-            "TB"
-          );
-
-          const newNotification = new Notification({
-            _id: notificationId,
-            categoryNotification: "cancel_schedule",
-            customerId: customerData._id,
-            customer: {
-              _id: customerData._id,
-              name: customerData.name,
-              phone: customerData.phone,
-            },
-            content: `Phiếu khám ${examination._id} của khách hàng ${
-              customerData.name
-            }-${customerData.phone} đã bị hủy vào ${moment(
-              examination.updatedAt
-            ).format("HH:mm DD/MM/yyyy")}`,
-            examinationId: examination._id,
-            doctorId: examination.doctorId || "",
-            status: 0,
-          });
-
-          await newNotification.save();
-
-          return res.json({
-            message: "Hủy Khám thành công!",
-            examination,
-          });
         }
-      } else {
-        console.log("status:", status);
+
+        // Tạo mới thông báo model Notification
+        const lastNotification = await Notification.findOne(
+          {},
+          {},
+          { sort: { _id: -1 } }
+        );
+        const notificationId = generateNextId(
+          lastNotification ? lastNotification._id : null,
+          "TB"
+        );
+
+        const newNotification = new Notification({
+          _id: notificationId,
+          categoryNotification: "cancel_examination",
+          customerId: customerData._id,
+          customer: {
+            _id: customerData._id,
+            name: customerData.name,
+            phone: customerData.phone,
+          },
+          content: `Phiếu khám ${examination._id} của khách hàng ${
+            customerData.name
+          }-${customerData.phone} đã bị hủy vào ${moment(
+            examination.updatedAt
+          ).format("HH:mm DD/MM/yyyy")}`,
+          examinationId: examination._id,
+          doctorId: examination.doctorId || "",
+          status: 0,
+        });
+
+        await newNotification.save();
+
+        return res.json({
+          message: "Hủy Khám thành công!",
+          examination,
+        });
+      }
+
+      // Nếu status = cancel_schedule ( Trạng thái là Hủy Lịch khám)
+      else if (status === "cancel_schedule") {
+        const examination = await MedicalExaminationSlip.findByIdAndUpdate(
+          id,
+          {
+            ...req.body,
+            day_cancel: new Date().toISOString(),
+          },
+          { new: true }
+        );
+
+        const customerData = await Customer.findById(examination.customerId);
+
+        // Gửi thông báo đã hủy Lịch
+        if (notifyTokens.length) {
+          await sendMessageToDevices(
+            notifyTokens,
+            `Phòng khám Medipro`,
+            `Lịch khám ${examination._id} của khách hàng ${customerData.name}-${
+              customerData.phone
+            } đã bị hủy vào ${moment(examination.updatedAt).format(
+              "HH:mm DD/MM/yyyy"
+            )}`
+          );
+        }
+
+        // Tạo mới thông báo model Notification
+        const lastNotification = await Notification.findOne(
+          {},
+          {},
+          { sort: { _id: -1 } }
+        );
+        const notificationId = generateNextId(
+          lastNotification ? lastNotification._id : null,
+          "TB"
+        );
+
+        const newNotification = new Notification({
+          _id: notificationId,
+          categoryNotification: "cancel_schedule",
+          customerId: customerData._id,
+          customer: {
+            _id: customerData._id,
+            name: customerData.name,
+            phone: customerData.phone,
+          },
+          content: `Lịch khám ${examination._id} của khách hàng ${
+            customerData.name
+          }-${customerData.phone} đã bị hủy vào ${moment(
+            examination.updatedAt
+          ).format("HH:mm DD/MM/yyyy")}`,
+          examinationId: examination._id,
+          doctorId: examination.doctorId || "",
+          status: 0,
+        });
+
+        await newNotification.save();
+
+        return res.json({
+          message: "Hủy Lịch khám thành công!",
+          examination,
+        });
+      }
+
+      // Nếu không có Dịch vụ khám và cũng không phải trạng thái Hủy lịch hoặc Hủy khám
+      else {
         const examination = await MedicalExaminationSlip.findByIdAndUpdate(
           id,
           {
@@ -576,7 +613,11 @@ export const updateExamination = async (req, res) => {
           examination,
         });
       }
-    } else {
+    }
+
+    // Nếu không cập nhật lại customerId (Cập nhật Khách hàng khác trong Phiếu khám)
+    else {
+      // Nếu không phải trạng thái Hủy và có Dịch vụ khám
       if (services && status !== "cancel") {
         const examination = await MedicalExaminationSlip.findByIdAndUpdate(id, {
           ...req.body,
@@ -603,134 +644,139 @@ export const updateExamination = async (req, res) => {
           message: "Cập nhật phiếu khám thành công",
           examination,
         });
-      } else if (status === "cancel") {
-        if (dataExam.day_booking) {
-          const examination = await MedicalExaminationSlip.findByIdAndUpdate(
-            id,
-            {
-              ...req.body,
-              day_cancel: new Date().toISOString(),
-            },
-            { new: true }
-          );
+      }
+      // Nếu trạng thái là cancel (Hủy phiếu khám)
+      else if (status === "cancel") {
+        const examination = await MedicalExaminationSlip.findByIdAndUpdate(
+          id,
+          {
+            ...req.body,
+            day_cancel: new Date().toISOString(),
+          },
+          { new: true }
+        );
 
-          const customerData = await Customer.findById(examination.customerId);
+        const customerData = await Customer.findById(examination.customerId);
 
-          // Gửi thông báo đã hủy Lịch
-          if (notifyTokens.length) {
-            await sendMessageToDevices(
-              notifyTokens,
-              `Phòng khám Medipro`,
-              `Lịch khám ${examination._id} của khách hàng ${
-                customerData.name
-              }-${customerData.phone} đã bị hủy vào ${moment(
-                examination.updatedAt
-              ).format("HH:mm DD/MM/yyyy")}`
-            );
-          }
-
-          // Tạo mới thông báo model Notification
-
-          const lastNotification = await Notification.findOne(
-            {},
-            {},
-            { sort: { _id: -1 } }
-          );
-          const notificationId = generateNextId(
-            lastNotification ? lastNotification._id : null,
-            "TB"
-          );
-
-          const newNotification = new Notification({
-            _id: notificationId,
-            categoryNotification: "cancel_schedule",
-            customerId: customerData._id,
-            customer: {
-              _id: customerData._id,
-              name: customerData.name,
-              phone: customerData.phone,
-            },
-            content: `Lịch khám ${examination._id} của khách hàng ${
+        // Gửi thông báo đã hủy Lịch
+        if (notifyTokens.length) {
+          await sendMessageToDevices(
+            notifyTokens,
+            `Phòng khám Medipro`,
+            `Phiếu khám ${examination._id} của khách hàng ${
               customerData.name
             }-${customerData.phone} đã bị hủy vào ${moment(
               examination.updatedAt
-            ).format("HH:mm DD/MM/yyyy")}`,
-            examinationId: examination._id,
-            doctorId: examination.doctorId || "",
-            status: 0,
-          });
-
-          await newNotification.save();
-
-          return res.json({
-            message: "Hủy Lịch khám thành công!",
-            examination,
-          });
-        } else {
-          const examination = await MedicalExaminationSlip.findByIdAndUpdate(
-            id,
-            {
-              ...req.body,
-              day_cancel: new Date().toISOString(),
-            },
-            { new: true }
+            ).format("HH:mm DD/MM/yyyy")}`
           );
-
-          const customerData = await Customer.findById(examination.customerId);
-
-          // Gửi thông báo đã hủy Lịch
-          if (notifyTokens.length) {
-            await sendMessageToDevices(
-              notifyTokens,
-              `Phòng khám Medipro`,
-              `Phiêu khám ${examination._id} của khách hàng ${
-                customerData.name
-              }-${customerData.phone} đã bị hủy vào ${moment(
-                examination.updatedAt
-              ).format("HH:mm DD/MM/yyyy")}`
-            );
-          }
-
-          // Tạo mới thông báo model Notification
-
-          const lastNotification = await Notification.findOne(
-            {},
-            {},
-            { sort: { _id: -1 } }
-          );
-          const notificationId = generateNextId(
-            lastNotification ? lastNotification._id : null,
-            "TB"
-          );
-
-          const newNotification = new Notification({
-            _id: notificationId,
-            categoryNotification: "cancel_schedule",
-            customerId: customerData._id,
-            customer: {
-              _id: customerData._id,
-              name: customerData.name,
-              phone: customerData.phone,
-            },
-            content: `Phiêu khám ${examination._id} của khách hàng ${
-              customerData.name
-            }-${customerData.phone} đã bị hủy vào ${moment(
-              examination.updatedAt
-            ).format("HH:mm DD/MM/yyyy")}`,
-            examinationId: examination._id,
-            doctorId: examination.doctorId || "",
-            status: 0,
-          });
-
-          await newNotification.save();
-
-          return res.json({
-            message: "Hủy Khám thành công!",
-            examination,
-          });
         }
-      } else {
-        console.log("status>>>:", status);
+
+        // Tạo mới thông báo model Notification
+
+        const lastNotification = await Notification.findOne(
+          {},
+          {},
+          { sort: { _id: -1 } }
+        );
+        const notificationId = generateNextId(
+          lastNotification ? lastNotification._id : null,
+          "TB"
+        );
+
+        const newNotification = new Notification({
+          _id: notificationId,
+          categoryNotification: "cancel_examination",
+          customerId: customerData._id,
+          customer: {
+            _id: customerData._id,
+            name: customerData.name,
+            phone: customerData.phone,
+          },
+          content: `Phiếu khám ${examination._id} của khách hàng ${
+            customerData.name
+          }-${customerData.phone} đã bị hủy vào ${moment(
+            examination.updatedAt
+          ).format("HH:mm DD/MM/yyyy")}`,
+          examinationId: examination._id,
+          doctorId: examination.doctorId || "",
+          status: 0,
+        });
+
+        await newNotification.save();
+
+        return res.json({
+          message: "Hủy Phiếu khám thành công!",
+          examination,
+        });
+      }
+
+      // Nếu trạng thái là cancel_schedule (Hủy Lịch khám)
+      else if (status === "cancel_schedule") {
+        const examination = await MedicalExaminationSlip.findByIdAndUpdate(
+          id,
+          {
+            ...req.body,
+            day_cancel: new Date().toISOString(),
+          },
+          { new: true }
+        );
+
+        const customerData = await Customer.findById(examination.customerId);
+
+        // Gửi thông báo đã hủy Lịch
+        if (notifyTokens.length) {
+          await sendMessageToDevices(
+            notifyTokens,
+            `Phòng khám Medipro`,
+            `Lịch khám ${examination._id} của khách hàng ${customerData.name}-${
+              customerData.phone
+            } đã bị hủy vào ${moment(examination.updatedAt).format(
+              "HH:mm DD/MM/yyyy"
+            )}`
+          );
+        }
+
+        // Tạo mới thông báo model Notification
+
+        const lastNotification = await Notification.findOne(
+          {},
+          {},
+          { sort: { _id: -1 } }
+        );
+        const notificationId = generateNextId(
+          lastNotification ? lastNotification._id : null,
+          "TB"
+        );
+
+        const newNotification = new Notification({
+          _id: notificationId,
+          categoryNotification: "cancel_schedule",
+          customerId: customerData._id,
+          customer: {
+            _id: customerData._id,
+            name: customerData.name,
+            phone: customerData.phone,
+          },
+          content: `Lịch khám ${examination._id} của khách hàng ${
+            customerData.name
+          }-${customerData.phone} đã bị hủy vào ${moment(
+            examination.updatedAt
+          ).format("HH:mm DD/MM/yyyy")}`,
+          examinationId: examination._id,
+          doctorId: examination.doctorId || "",
+          status: 0,
+        });
+
+        await newNotification.save();
+
+        return res.json({
+          message: "Hủy Lịch khám thành công!",
+          examination,
+        });
+      }
+
+      // Nếu không có Dịch vụ khám và cũng không phải trạng thái Hủy lịch hoặc Hủy khám
+      else {
         const examination = await MedicalExaminationSlip.findByIdAndUpdate(
           id,
           {

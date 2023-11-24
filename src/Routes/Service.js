@@ -1,9 +1,17 @@
 import express from "express";
-import { addService, deleteService, getAllService, getOneService, updateService } from "../Controllers/Service.js";
+import {
+  addService,
+  deleteService,
+  getAllService,
+  getOneService,
+  updateService,
+} from "../Controllers/Service.js";
+import authenticate from "../Middlewares/authenticate.js";
+import { generalAuth } from "../Middlewares/authorization.js";
 const router = express.Router();
-router.get("/services", getAllService);
-router.get("/services/:id", getOneService);
-router.post("/services", addService);
-router.delete("/services/:id", deleteService);
-router.put("/services/:id", updateService);
+router.get("/services", authenticate, generalAuth, getAllService);
+router.get("/services/:id", authenticate, generalAuth, getOneService);
+router.post("/services", authenticate, generalAuth, addService);
+router.delete("/services/:id", authenticate, generalAuth, deleteService);
+router.put("/services/:id", authenticate, generalAuth, updateService);
 export default router;
