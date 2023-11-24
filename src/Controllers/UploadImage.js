@@ -1,18 +1,18 @@
-import cloudinary from "../configs/cloudinary.js";
+import cloudinary from '../configs/cloudinary.js';
 
 //UPLOAD IMAGE
 export const uploadImage = async (req, res) => {
   const files = req.files;
   try {
     const uploadPromises = files.map((file) => {
-      if (file.mimetype.startsWith("image/")) {
+      if (file.mimetype.startsWith('image/')) {
         return cloudinary.uploader.upload(file.path);
-      } else if (file.mimetype.startsWith("video/")) {
+      } else if (file.mimetype.startsWith('video/')) {
         return cloudinary.uploader.upload(file.path, {
-          resource_type: "video",
+          resource_type: 'video',
         });
       } else {
-        throw new Error("Invalid file type");
+        throw new Error('Invalid file type');
       }
     });
     const results = await Promise.all(uploadPromises);
@@ -32,7 +32,7 @@ export const deleteImage = async (req, res) => {
   try {
     const result = await cloudinary.uploader.destroy(publicId);
     return res.status(200).json({
-      message: "Image deleted successfully!",
+      message: 'Image deleted successfully!',
       result,
     });
   } catch (error) {
@@ -47,7 +47,7 @@ export const updateImage = async (req, res) => {
 
   if (!Array.isArray(files)) {
     return res.status(400).json({
-      message: "No files were uploaded!",
+      message: 'No files were uploaded!',
     });
   }
 
@@ -63,7 +63,7 @@ export const updateImage = async (req, res) => {
 
     // Trả về kết quả với url và publicId của ảnh mới
     return res.status(400).json({
-      message: "Images updated successfully!",
+      message: 'Images updated successfully!',
       image_url: {
         url: uploadResult.secure_url,
         publicId: uploadResult.public_id,
