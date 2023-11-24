@@ -8,16 +8,12 @@ import User from '../Models/User.js';
 import moment from 'moment';
 
 // Tổng doanh thu khám
-export const statisticTotalRevenueOrder = async (req, res) => {
+export const statisticTotalRevenueOrder = async (_, res) => {
   try {
-    const { from, to } = req.query;
     // query all order
-    const getAllService = await ServiceByExamination.find({
-      createdAt: {
-        $gte: moment(from).toDate(),
-        $lt: moment(to).toDate(),
-      },
-    }).populate([{ path: 'service_examination', select: 'price' }]);
+    const getAllService = await ServiceByExamination.find().populate([
+      { path: 'service_examination', select: 'price' },
+    ]);
     let totalAmount = 0;
     let actualAmount = 0;
     for (let i = 0; i < getAllService.length; i++) {
@@ -54,21 +50,25 @@ export const statisticTotalRevenueOrder = async (req, res) => {
 export const statisticCancellationRate = async (req, res) => {
   const { from, to } = req.query;
   try {
-    const dataCancel = await MedicalExaminationSlip.find({
+    const dataAll = await MedicalExaminationSlip.find({
       day_booking: {
         $gte: moment(from).toDate().toISOString(),
         $lt: moment(to).toDate().toISOString(),
       },
     });
-    let totalCancel = 0;
-    for (let i = 0; i <= dataCancel.length; i++) {
-      if (dataCancel[i]?.status === 'cancel') totalCancel++;
-    }
-
-    const rateCancel = Number((totalCancel / dataCancel?.length) * 100).toFixed(
-      2,
-    );
-    return res.status(200).json({ rateCancel });
+    const dataCancel = dataAll?.filter((i) => i.status === 'cancel');
+    return res.status(200).json({
+      data: [
+        {
+          name: 'Tổng số lượng đặt',
+          value: dataAll.length,
+        },
+        {
+          name: 'Đã hủy',
+          value: dataCancel.length,
+        },
+      ],
+    });
   } catch (error) {
     return res.status(500).json({
       message: `Đã xảy ra lỗi: ${error.message}`,
@@ -77,16 +77,10 @@ export const statisticCancellationRate = async (req, res) => {
 };
 
 // Số lượng khách hàng
-export const statisticTotalCustomer = async (req, res) => {
-  const { from, to } = req.query;
+export const statisticTotalCustomer = async (_, res) => {
   try {
-    const dataCancel = await Customer.count({
-      createdAt: {
-        $gte: moment(from).toDate(),
-        $lt: moment(to).toDate(),
-      },
-    });
-    return res.status(200).json({ dataCancel });
+    const totalCustomer = await Customer.count();
+    return res.status(200).json({ totalCustomer });
   } catch (error) {
     return res.status(500).json({
       message: `Đã xảy ra lỗi: ${error.message}`,
@@ -96,10 +90,14 @@ export const statisticTotalCustomer = async (req, res) => {
 
 // Số lượng nhân viên
 export const statisticTotalUser = async (req, res) => {
+  const { from, to } = req.query;
   try {
-    const data = await User.find().populate([
-      { path: 'role', select: 'roleNumber' },
-    ]);
+    const data = await User.find({
+      createdAt: {
+        $gte: moment(from).toDate(),
+        $lt: moment(to).toDate(),
+      },
+    }).populate([{ path: 'role', select: 'roleNumber' }]);
 
     let doctor = 0;
     let reception_staff = 0;
@@ -119,20 +117,22 @@ export const statisticTotalUser = async (req, res) => {
           break;
       }
     }
-    return res.status(200).json([
-      {
-        label: 'Bác sĩ',
-        value: doctor,
-      },
-      {
-        label: 'Nhân viên tiếp đón',
-        value: reception_staff,
-      },
-      {
-        label: 'Nhân viên bán thuốc',
-        value: medicine_staff,
-      },
-    ]);
+    return res.status(200).json({
+      data: [
+        {
+          name: 'Bác sĩ',
+          value: doctor,
+        },
+        {
+          name: 'Nhân viên tiếp đón',
+          value: reception_staff,
+        },
+        {
+          name: 'Nhân viên bán thuốc',
+          value: medicine_staff,
+        },
+      ],
+    });
   } catch (error) {
     return res.status(500).json({
       message: `Đã xảy ra lỗi: ${error.message}`,
