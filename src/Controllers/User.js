@@ -77,6 +77,7 @@ export const deleteUser = async (req, res) => {
     }
     return res.json({
       message: "Xoá người dùng thành công!",
+      user,
     });
   } catch (error) {
     return res.status(404).json({
@@ -238,7 +239,7 @@ export const signin = async (req, res) => {
     const hashedPassword = await bcrypt.compare(password, user.password);
     if (!hashedPassword) {
       return res.status(400).json({
-        message: "Mật khẩu không khớp!",
+        message: "Mật khảu không khớp!",
       });
     }
     user.password = undefined;
@@ -254,7 +255,7 @@ export const signin = async (req, res) => {
     });
 
     return res.status(201).json({
-      message: "Đăng nhập thành công!",
+      message: "Đăng nhập thành công ",
       accessToken,
       refreshToken,
       user,
