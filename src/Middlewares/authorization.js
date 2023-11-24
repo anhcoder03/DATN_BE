@@ -14,7 +14,7 @@ export const generalAuth = async (req, res, next) => {
     ) {
       next();
     } else {
-      return res.status(400).json({
+      return res.status(403).json({
         message: "Bạn không có quyền để thực hiện hành động này!",
       });
     }

@@ -8,7 +8,9 @@ const authenticate = async (req, res, next) => {
   try {
     const authHeader = req.headers.authorization;
     if (!authHeader) {
-      throw new Error("Bạn cần đăng nhập để thực hiện hành động này!");
+      return res.status(401).json({
+        message: "Bạn cần đăng nhập để thực hiện hành động này!",
+      });
     }
 
     const accessToken = authHeader && authHeader.split(" ")[1];
@@ -35,7 +37,7 @@ const authenticate = async (req, res, next) => {
     //get User
     const user = await User.findById(_id);
     if (!user) {
-      return res.status(400).json({
+      return res.status(404).json({
         message: "Không tìm thấy người dùng!",
       });
     }

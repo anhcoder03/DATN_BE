@@ -39,7 +39,6 @@ const PrescriptionSchema = new Schema(
         dosage: String, // liều dùng
         timesUsePerDay: Number, // số lần sử dụng/ngày
         how_using: String, // cách dùng
-        routeOfDrug: String, // đường dùng thuốc
       },
     ],
     status: {

@@ -25,10 +25,6 @@ const medicinesSchema = Joi.object({
     "number.base": "Số lần sử dụng trong ngày phải là một số!",
     "number.min": "Số lần sử dụng trong ngày phải lớn hơn 0",
   }),
-  routeOfDrug: Joi.string().trim().required().messages({
-    "string.empty": "Vui lòng chọn Đường dùng thuốc!",
-    "any.required": "Trường Đường dùng thuốc là bắt buộc!",
-  }),
 });
 
 const PrescriptionValidate = Joi.object({

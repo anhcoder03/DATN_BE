@@ -11,9 +11,17 @@ export async function sendMessageToDevices(tokens, title, body) {
     notification: {
       title: title,
       body: body,
-      // icon: "https://res.cloudinary.com/mediapro-cloud/image/upload/v1700236522/mediaPro-DATN/logo3_j43xpj.png",
     },
     tokens: tokens,
+    // webpush: {
+    //   fcm_options: {
+    //     link: "https://fb.com",
+    //     notification: {
+    //       requireInteraction: "true",
+    //       badge: "/badge-icon.png",
+    //     },
+    //   },
+    // },
   };
 
   try {

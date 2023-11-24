@@ -238,7 +238,7 @@ export const signin = async (req, res) => {
     const hashedPassword = await bcrypt.compare(password, user.password);
     if (!hashedPassword) {
       return res.status(400).json({
-        message: "Mật khảu không khớp!",
+        message: "Mật khẩu không khớp!",
       });
     }
     user.password = undefined;
@@ -322,7 +322,7 @@ export const changePassword = async (req, res) => {
     const checkPassword = await bcrypt.compare(password, user.password);
     if (!checkPassword) {
       return res.status(400).json({
-        message: `Mật khẩu cũ không đúng! Vui lòng nhập lại!`,
+        message: `Mật khẩu cũ không đúng!`,
       });
     }
 

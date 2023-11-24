@@ -59,3 +59,26 @@ export const getAllNotification = async (req, res) => {
     });
   }
 };
+
+export const updateNotifycation = async (req, res) => {
+  const { id } = req.params;
+  try {
+    const notify = await Notification.findById(id);
+    if (!notify) {
+      return res.status(404).json({
+        message: "Không tìm thấy thông báo cần cập nhật!",
+      });
+    }
+    const notifyUpdated = await Notification.findByIdAndUpdate(id, req.body, {
+      new: true,
+    });
+    return res.status(200).json({
+      message: "Cập nhật thông báo thành công!",
+      notification: notifyUpdated,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: error.message,
+    });
+  }
+};

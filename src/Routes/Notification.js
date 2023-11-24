@@ -1,7 +1,11 @@
 import express from "express";
-import { getAllNotification } from "../Controllers/Notification.js";
+import {
+  getAllNotification,
+  updateNotifycation,
+} from "../Controllers/Notification.js";
 
 const router = express.Router();
 router.get("/notifications", getAllNotification);
+router.put("/notifications/:id", updateNotifycation);
 
 export default router;
