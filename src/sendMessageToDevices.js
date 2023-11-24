@@ -13,15 +13,11 @@ export async function sendMessageToDevices(tokens, title, body) {
       body: body,
     },
     tokens: tokens,
-    // webpush: {
-    //   fcm_options: {
-    //     link: "https://fb.com",
-    //     notification: {
-    //       requireInteraction: "true",
-    //       badge: "/badge-icon.png",
-    //     },
-    //   },
-    // },
+    webpush: {
+      fcm_options: {
+        link: "https://fb.com",
+      },
+    },
   };
 
   try {

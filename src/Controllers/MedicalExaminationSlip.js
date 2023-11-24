@@ -214,6 +214,7 @@ export const createMedicalExaminationSlip = async (req, res) => {
           customer,
           id: examinationId,
           waitingCode,
+          day_welcome: new Date().toISOString(),
         });
 
         await Customer.findByIdAndUpdate(customerId, {
@@ -248,6 +249,7 @@ export const createMedicalExaminationSlip = async (req, res) => {
           customer,
           id: examinationId,
           waitingCode,
+          day_booking: new Date().toISOString(),
         });
         await Customer.findByIdAndUpdate(customerId, {
           $addToSet: { examination_history: examination._id },
