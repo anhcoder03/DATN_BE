@@ -15,11 +15,6 @@ const medicinesSchema = Joi.object({
     "number.base": "Giá thuốc phải là một số!",
     "number.min": "Giá thuốc phải lớn hơn 0",
   }),
-  totalPrice: Joi.number().min(1).required().messages({
-    "number.empty": "Thành tiền không được để trống!",
-    "number.base": "Thành tiền phải là một số!",
-    "number.min": "Thành tiền phải lớn hơn 0",
-  }),
 });
 
 const OrderValidate = Joi.object({
@@ -28,7 +23,7 @@ const OrderValidate = Joi.object({
     "string.empty": "ID Khách hàng không được để trống!",
     "any.required": "Trường ID Khách hàng là bắt buộc!",
   }),
-  creatorId: Joi.string().trim().required().messages({
+  sellerId: Joi.string().trim().required().messages({
     "string.empty": "ID Người tạo không được để trống!",
     "any.required": "Trường ID Người tạo là bắt buộc!",
   }),
@@ -37,8 +32,8 @@ const OrderValidate = Joi.object({
     "array.min": "Thuốc không được ít hơn {{#limit}}!",
     "any.required": "Trường Thuốc là bắt buộc!",
   }),
-  orderType: Joi.string().trim().required().messages({
-    "string.empty": "Loại Đơn hàng không được để trống!",
+  orderType: Joi.number().required().messages({
+    "number.empty": "Loại Đơn hàng không được để trống!",
     "any.required": "Trường Loại Đơn hàng là bắt buộc!",
   }),
   totalAmount: Joi.number().min(1).required().messages({
@@ -46,18 +41,18 @@ const OrderValidate = Joi.object({
     "number.base": "Tổng thành tiền phải là một số!",
     "number.min": "Tổng thành tiền phải lớn hơn 0",
   }),
-  paymentStatus: Joi.string().trim().required().messages({
-    "string.empty": "Trạng thái thanh toán không được để trống!",
+  paymentStatus: Joi.number().required().messages({
+    "number.empty": "Trạng thái thanh toán không được để trống!",
     "any.required": "Trạng thái thanh toán là bắt buộc!",
     "any.only": "Trạng thái thanh toán không hợp lệ!",
   }),
-  paymentMethod: Joi.string().trim().required().messages({
-    "string.empty": "Phương thức thanh toán không được để trống!",
+  paymentMethod: Joi.number().required().messages({
+    "number.empty": "Phương thức thanh toán không được để trống!",
     "any.required": "Phương thức thanh toán là bắt buộc!",
     "any.only": "Phương thức thanh toán không hợp lệ!",
   }),
-  status: Joi.string().trim().required().messages({
-    "string.empty": "Trạng thái Đơn hàng không được để trống!",
+  status: Joi.number().required().messages({
+    "number.empty": "Trạng thái Đơn hàng không được để trống!",
     "any.required": "Trạng thái Đơn hàng là bắt buộc!",
     "any.only": "Trạng thái Đơn hàng không hợp lệ!",
   }),
