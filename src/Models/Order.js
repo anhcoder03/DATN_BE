@@ -15,13 +15,14 @@ const OrderSchema = new Schema(
       name: String,
       phone: String,
     },
-    creatorId: {
+    sellerId: {
       type: String,
       ref: "User",
     },
     prescriptionId: {
       type: String,
       ref: "Prescription",
+      default: null,
     },
     medicines: [
       {
@@ -31,32 +32,32 @@ const OrderSchema = new Schema(
         },
         quantity: Number,
         price: Number,
-        totalPrice: Number,
       },
     ],
+
     orderType: {
-      type: String,
-      enum: ["Kê đơn", "Bán tại cửa hàng"],
-      default: "Bán tại cửa hàng",
+      type: Number,
+      enum: [0, 1], // ["Kê đơn", "Bán tại cửa hàng"],
+      default: 0,
     },
     totalAmount: Number,
     paymentStatus: {
-      type: String,
-      enum: ["Đã thanh toán", "Chưa thanh toán"],
-      default: "Chưa thanh toán",
+      type: Number,
+      enum: [0, 1], // ["Đã thanh toán", "Chưa thanh toán"],
+      default: 0,
     },
     paymentMethod: {
-      type: String,
-      enum: ["Chuyển khoản", "Tiền mặt"],
+      type: Number,
+      enum: [1, 2], // ["Chuyển khoản", "Tiền mặt"]
     },
     status: {
-      type: String,
-      enum: ["Đang chờ xử lý", "Hoàn thành", "Đã hủy"],
-      default: "Đang chờ xử lý",
+      type: Number,
+      enum: [0, 1, 2], //["Đang chờ xử lý", "Hoàn thành", "Đã hủy"],
+      default: 0,
     },
     note: {
       type: String,
-      default: "Không có ghi chú",
+      default: null,
     },
   },
   { versionKey: false, timestamps: true }
