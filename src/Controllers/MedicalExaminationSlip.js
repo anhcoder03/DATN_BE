@@ -8,6 +8,7 @@ import moment from "moment/moment.js";
 import Notification from "../Models/Notification.js";
 import { getNotifyTokens } from "./NotifyToken.js";
 import Role from "../Models/Role.js";
+import { LinkFE } from "../Constants/LinkToFE.js";
 
 export const getAllExamination = async (req, res) => {
   try {
@@ -263,7 +264,8 @@ export const createMedicalExaminationSlip = async (req, res) => {
               customer.phone
             } đã đặt lịch khám vào lúc ${moment(examination.createdAt).format(
               "HH:mm DD/MM/yyyy"
-            )}`
+            )}`,
+            `${LinkFE.RECEPTION_LINK}/${examination._id}/view`
           );
         }
 
@@ -490,7 +492,8 @@ export const updateExamination = async (req, res) => {
               customerData.name
             }-${customerData.phone} đã bị hủy vào ${moment(
               examination.updatedAt
-            ).format("HH:mm DD/MM/yyyy")}`
+            ).format("HH:mm DD/MM/yyyy")}`,
+            `${LinkFE.RECEPTION_LINK}/${examination._id}/view`
           );
         }
 
@@ -554,7 +557,8 @@ export const updateExamination = async (req, res) => {
               customerData.phone
             } đã bị hủy vào ${moment(examination.updatedAt).format(
               "HH:mm DD/MM/yyyy"
-            )}`
+            )}`,
+            `${LinkFE.RECEPTION_LINK}/${examination._id}/view`
           );
         }
 
@@ -665,7 +669,8 @@ export const updateExamination = async (req, res) => {
               customerData.name
             }-${customerData.phone} đã bị hủy vào ${moment(
               examination.updatedAt
-            ).format("HH:mm DD/MM/yyyy")}`
+            ).format("HH:mm DD/MM/yyyy")}`,
+            `${LinkFE.RECEPTION_LINK}/${examination._id}/view`
           );
         }
 
@@ -730,7 +735,8 @@ export const updateExamination = async (req, res) => {
               customerData.phone
             } đã bị hủy vào ${moment(examination.updatedAt).format(
               "HH:mm DD/MM/yyyy"
-            )}`
+            )}`,
+            `${LinkFE.RECEPTION_LINK}/${examination._id}/view`
           );
         }
 

@@ -1,16 +1,16 @@
 import admin from "firebase-admin";
 import { getMessaging } from "firebase-admin/messaging";
-import serviceAccount from "./medipro-datn-firebase-adminsdk-xn8kk-9eb76bc6f2.json" assert { type: "json" };
+import serviceAccount from "./medipro-fpoly-firebase-adminsdk-o628s-5858c0ae87.json" assert { type: "json" };
 
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
 });
 
-export async function sendMessageToDevices(tokens, title, body) {
+export async function sendMessageToDevices(tokens, title, body, link) {
   const message = {
     tokens: tokens,
     data: {
-      link: "http://localhost:5173/reception?tab=booking&page=1&limit=25",
+      link: link,
       title: title,
       body: body,
     },
