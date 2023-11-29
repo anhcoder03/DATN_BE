@@ -1,18 +1,19 @@
-import Order from '../Models/Order.js';
-import ServiceByExamination from '../Models/ServiceByExamination.js';
-import Service from '../Models/Service.js';
-import MedicalExaminationSlip from '../Models/MedicalExaminationSlip.js';
-import Customer from '../Models/Customer.js';
-import User from '../Models/User.js';
+import Order from "../Models/Order.js";
+import ServiceByExamination from "../Models/ServiceByExamination.js";
+import Service from "../Models/Service.js";
+import MedicalExaminationSlip from "../Models/MedicalExaminationSlip.js";
+import Customer from "../Models/Customer.js";
+import User from "../Models/User.js";
 
-import moment from 'moment';
+import moment from "moment";
 
 // Tổng doanh thu khám
 export const statisticTotalRevenueOrder = async (_, res) => {
   try {
     // query all order
     const getAllService = await ServiceByExamination.find().populate([
-      { path: 'service_examination', select: 'price' },
+      { path: "service_examination", select: "price" },
+      ``,
     ]);
     let totalAmount = 0;
     let actualAmount = 0;
@@ -20,7 +21,7 @@ export const statisticTotalRevenueOrder = async (_, res) => {
       totalAmount += Number(getAllService[i]?.service_examination?.price);
     }
     for (let i = 0; i < getAllService.length; i++) {
-      if (getAllService[i].paymentStatus === 'paid') {
+      if (getAllService[i].paymentStatus === "paid") {
         actualAmount += Number(getAllService[i]?.service_examination?.price);
       }
     }
@@ -56,15 +57,17 @@ export const statisticCancellationRate = async (req, res) => {
         $lt: moment(to).toDate().toISOString(),
       },
     });
-    const dataCancel = dataAll?.filter((i) => i.status === 'cancel');
+    const dataCancel = dataAll?.filter(
+      (i) => i.status === "cancel_schedule" || i.status === "cancel"
+    );
     return res.status(200).json({
       data: [
         {
-          name: 'Tổng số lượng đặt',
+          name: "Tổng số lượng đặt",
           value: dataAll.length,
         },
         {
-          name: 'Đã hủy',
+          name: "Đã hủy",
           value: dataCancel.length,
         },
       ],
@@ -97,7 +100,7 @@ export const statisticTotalUser = async (req, res) => {
         $gte: moment(from).toDate(),
         $lt: moment(to).toDate(),
       },
-    }).populate([{ path: 'role', select: 'roleNumber' }]);
+    }).populate([{ path: "role", select: "roleNumber" }]);
 
     let doctor = 0;
     let reception_staff = 0;
@@ -120,15 +123,15 @@ export const statisticTotalUser = async (req, res) => {
     return res.status(200).json({
       data: [
         {
-          name: 'Bác sĩ',
+          name: "Bác sĩ",
           value: doctor,
         },
         {
-          name: 'Nhân viên tiếp đón',
+          name: "Nhân viên tiếp đón",
           value: reception_staff,
         },
         {
-          name: 'Nhân viên bán thuốc',
+          name: "Nhân viên bán thuốc",
           value: medicine_staff,
         },
       ],

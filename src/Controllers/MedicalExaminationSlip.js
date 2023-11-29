@@ -401,11 +401,7 @@ export const updateExamination = async (req, res) => {
       (roleNumber === 3 && status == "done") ||
       (roleNumber === 3 && status == "cancel") ||
       (roleNumber === 3 && status == "cancel_schedule") ||
-      (roleNumber === 2 &&
-        status !== "booking" &&
-        status !== "recetion" &&
-        status !== "cancel_schedule" &&
-        status !== "waiting")
+      (roleNumber === 2 && status == "running" && status == "done")
     ) {
       return res.status(403).json({
         message: "Bạn không có quyền thực hiện hành động này!",

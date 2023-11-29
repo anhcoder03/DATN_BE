@@ -37,10 +37,11 @@ const customerValidate = Joi.object({
     .messages({
       "string.email": "Please enter a valid email address",
     }),
+  examination_history: Joi.any(),
   note: Joi.any(),
   creator: Joi.string().required(),
   createdAt: Joi.any(),
-  updatedAt: Joi.any()
+  updatedAt: Joi.any(),
 });
 
 export default customerValidate;

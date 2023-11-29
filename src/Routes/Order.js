@@ -7,13 +7,13 @@ import {
   updateOrder,
 } from "../Controllers/Order.js";
 import authenticate from "../Middlewares/authenticate.js";
-import { generalAuth } from "../Middlewares/authorization.js";
+import { generalAuth, sellerAuth } from "../Middlewares/authorization.js";
 
 const router = Router();
 router.get("/orders", authenticate, generalAuth, getAllOrder);
-router.post("/orders", authenticate, generalAuth, createOrder);
 router.get("/orders/:id", authenticate, generalAuth, getOne);
-router.put("/orders/:id", authenticate, generalAuth, updateOrder);
-router.delete("/orders/:id", authenticate, generalAuth, deleteOrder);
+router.post("/orders", authenticate, sellerAuth, createOrder);
+router.put("/orders/:id", authenticate, sellerAuth, updateOrder);
+router.delete("/orders/:id", authenticate, sellerAuth, deleteOrder);
 
 export default router;

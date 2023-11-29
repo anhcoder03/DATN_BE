@@ -1,6 +1,6 @@
 import admin from "firebase-admin";
 import { getMessaging } from "firebase-admin/messaging";
-import serviceAccount from "./medipro-70534-firebase-adminsdk-shav1-247315c497.json" assert { type: "json" };
+import serviceAccount from "./medipro-datn-firebase-adminsdk-xn8kk-9eb76bc6f2.json" assert { type: "json" };
 
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
@@ -8,15 +8,11 @@ admin.initializeApp({
 
 export async function sendMessageToDevices(tokens, title, body) {
   const message = {
-    notification: {
+    tokens: tokens,
+    data: {
+      link: "http://localhost:5173/reception?tab=booking&page=1&limit=25",
       title: title,
       body: body,
-    },
-    tokens: tokens,
-    webpush: {
-      fcm_options: {
-        link: "https://fb.com",
-      },
     },
   };
 
