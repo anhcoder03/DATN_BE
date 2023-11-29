@@ -9,11 +9,12 @@ export const getAllOrder = async (req, res) => {
     _limit = 10,
     _sort = "createdAt",
     _order = "desc",
-    _status,
-    _orderType,
-    _paymentStatus,
-    _creatorId,
+    status,
+    orderType,
+    paymentStatus,
+    sellerId,
     search,
+    createdAt,
   } = req.query;
 
   const options = {
@@ -24,7 +25,7 @@ export const getAllOrder = async (req, res) => {
     },
     populate: [
       { path: "customerId", select: "_id name phone" },
-      { path: "creatorId", select: "_id name phone" },
+      { path: "sellerId", select: "_id name phone" },
       { path: "prescriptionId" },
       { path: "medicines.medicineId", select: "_id name price" },
     ],
@@ -47,21 +48,39 @@ export const getAllOrder = async (req, res) => {
         { _id: { $regex: searchRegex } },
       ];
     }
-    if (_status) {
-      query.status = _status;
+    if (createdAt) {
+      const queryDate = new Date(createdAt);
+      const startOfDay = new Date(
+        queryDate.getFullYear(),
+        queryDate.getMonth(),
+        queryDate.getDate()
+      );
+      const endOfDay = new Date(
+        queryDate.getFullYear(),
+        queryDate.getMonth(),
+        queryDate.getDate() + 1
+      );
+
+      query.createdAt = {
+        $gte: startOfDay.toISOString(),
+        $lt: endOfDay.toISOString(),
+      };
     }
-    if (_orderType) {
-      query.orderType = _orderType;
+    if (status) {
+      query.status = status;
     }
-    if (_paymentStatus) {
-      query.paymentStatus = _paymentStatus;
+    if (orderType) {
+      query.orderType = orderType;
     }
-    if (_creatorId) {
-      query.creatorId = _creatorId;
+    if (paymentStatus) {
+      query.paymentStatus = paymentStatus;
+    }
+    if (sellerId) {
+      query.sellerId = sellerId;
     }
 
     const orders = await Order.paginate(query, options);
-    if (!orders || (orders && !orders.docs.length)) {
+    if (!orders) {
       return res.status(400).json({
         message: `Không có dữ liệu Đơn hàng!`,
       });
@@ -81,7 +100,7 @@ export const getOne = async (req, res) => {
   const { id } = req.params;
   try {
     const order = await Order.findById(id)
-      .populate("creatorId")
+      .populate("sellerId")
       .populate("prescriptionId")
       .populate({ path: "customerId", select: "_id name phone" })
       .populate({ path: "medicines.medicineId", select: "_id name price" });
