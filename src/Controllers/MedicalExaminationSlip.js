@@ -293,6 +293,7 @@ export const createMedicalExaminationSlip = async (req, res) => {
           } đã đặt lịch khám vào lúc ${moment(examination.createdAt).format(
             "HH:mm DD/MM/yyyy"
           )}`,
+          link: `${LinkFE.RECEPTION_LINK}/${examination._id}/view`,
           status: 0,
         });
 
@@ -524,6 +525,7 @@ export const updateExamination = async (req, res) => {
           ).format("HH:mm DD/MM/yyyy")}`,
           examinationId: examination._id,
           doctorId: examination.doctorId || "",
+          link: `${LinkFE.RECEPTION_LINK}/${examination._id}/view`,
           status: 0,
         });
 
@@ -589,6 +591,7 @@ export const updateExamination = async (req, res) => {
           ).format("HH:mm DD/MM/yyyy")}`,
           examinationId: examination._id,
           doctorId: examination.doctorId || "",
+          link: `${LinkFE.RECEPTION_LINK}/${examination._id}/view`,
           status: 0,
         });
 
@@ -702,6 +705,7 @@ export const updateExamination = async (req, res) => {
           ).format("HH:mm DD/MM/yyyy")}`,
           examinationId: examination._id,
           doctorId: examination.doctorId || "",
+          link: `${LinkFE.RECEPTION_LINK}/${examination._id}/view`,
           status: 0,
         });
 
@@ -768,6 +772,7 @@ export const updateExamination = async (req, res) => {
           ).format("HH:mm DD/MM/yyyy")}`,
           examinationId: examination._id,
           doctorId: examination.doctorId || "",
+          link: `${LinkFE.RECEPTION_LINK}/${examination._id}/view`,
           status: 0,
         });
 
