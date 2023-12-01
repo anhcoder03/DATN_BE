@@ -31,6 +31,7 @@ const NotificationSchema = new Schema(
       type: String,
       required: true,
     },
+    link: String,
     status: {
       type: Number,
       enum: [0, 1], // [0: Chưa đọc, 1: Đã đọc]
