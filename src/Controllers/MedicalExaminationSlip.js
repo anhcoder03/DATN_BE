@@ -9,6 +9,7 @@ import Notification from "../Models/Notification.js";
 import { getNotifyTokens } from "./NotifyToken.js";
 import Role from "../Models/Role.js";
 import { LinkFE } from "../Constants/LinkToFE.js";
+import sendNotifyMail from "../configs/nodemailer.js";
 
 export const getAllExamination = async (req, res) => {
   try {
@@ -269,8 +270,14 @@ export const createMedicalExaminationSlip = async (req, res) => {
           );
         }
 
-        // Tạo mới thông báo model Notification
+        // Gửi mail thông báo cho khách hàng đã đặt lịch thành công
+        await sendNotifyMail(
+          customerData.email,
+          moment(examination.createdAt).format("HH:mm DD/MM/yyyy"),
+          "ĐẶT LỊCH KHÁM THÀNH CÔNG"
+        ).catch((error) => console.log("Error send mail:", error));
 
+        // Tạo mới thông báo model Notification
         const lastNotification = await Notification.findOne(
           {},
           {},

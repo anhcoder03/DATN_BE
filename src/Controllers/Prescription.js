@@ -176,45 +176,45 @@ export const createPrescription = async (req, res) => {
     });
 
     // Tạo mảng mới để chứa thông tin medicine với giá match với model Order
-    const orderMedicines = [];
+    // const orderMedicines = [];
 
-    for (const medicineData of medicines) {
-      const medicine = await Medicine.findById(medicineData.medicineId);
+    // for (const medicineData of medicines) {
+    //   const medicine = await Medicine.findById(medicineData.medicineId);
 
-      if (medicine) {
-        orderMedicines.push({
-          medicineId: medicineData.medicineId,
-          quantity: medicineData.quantity,
-          price: medicine.price,
-          totalPrice: medicine.price * medicineData.quantity,
-        });
-      }
-    }
+    //   if (medicine) {
+    //     orderMedicines.push({
+    //       medicineId: medicineData.medicineId,
+    //       quantity: medicineData.quantity,
+    //       price: medicine.price,
+    //       totalPrice: medicine.price * medicineData.quantity,
+    //     });
+    //   }
+    // }
 
-    // Custom Id Order
-    const lastOrder = await Order.findOne({}, {}, { sort: { _id: -1 } });
+    // // Custom Id Order
+    // const lastOrder = await Order.findOne({}, {}, { sort: { _id: -1 } });
 
-    const orderId = generateNextId(lastOrder ? lastOrder._id : null, "DH");
+    // const orderId = generateNextId(lastOrder ? lastOrder._id : null, "DH");
 
-    // Tạo Order
-    const newOrder = {
-      id: orderId,
-      customer,
-      creatorId: prescription.doctorId,
-      customerId: medicalExaminationSlip
-        ? medicalExaminationSlip?.customerId
-        : "",
-      prescriptionId: prescription._id,
-      medicines: orderMedicines,
-      totalAmount: handleTotalOrder(orderMedicines),
-      orderType: "Kê đơn",
-      paymentStatus: "Chưa thanh toán",
-      paymentMethod: "Tiền mặt",
-      status: "Đang chờ xử lý",
-      note: prescription.note,
-    };
+    // // Tạo Order
+    // const newOrder = {
+    //   id: orderId,
+    //   customer,
+    //   creatorId: prescription.doctorId,
+    //   customerId: medicalExaminationSlip
+    //     ? medicalExaminationSlip?.customerId
+    //     : "",
+    //   prescriptionId: prescription._id,
+    //   medicines: orderMedicines,
+    //   totalAmount: handleTotalOrder(orderMedicines),
+    //   orderType: "Kê đơn",
+    //   paymentStatus: "Chưa thanh toán",
+    //   paymentMethod: "Tiền mặt",
+    //   status: "Đang chờ xử lý",
+    //   note: prescription.note,
+    // };
 
-    await Order.create(newOrder);
+    // await Order.create(newOrder);
 
     if (!prescription) {
       return res.status(400).json({
