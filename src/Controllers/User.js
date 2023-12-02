@@ -289,7 +289,6 @@ export const refreshToken = async (req, res) => {
       refreshToken,
       privateKey: process.env.JWT_RFT_PRIVATE,
     });
-
     const user = await User.findById(_id);
 
     if (!user) {
@@ -297,12 +296,10 @@ export const refreshToken = async (req, res) => {
     }
 
     const accessToken = generalAccessToken({ _id: user._id });
-    const newRefreshToken = generalRefreshToken({ _id: user._id });
 
     return res.status(200).json({
       message: "Tạo accessToken mới thành công!",
       accessToken,
-      refreshToken: newRefreshToken,
       user,
     });
   } catch (error) {
