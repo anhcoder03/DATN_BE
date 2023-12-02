@@ -13,7 +13,6 @@ export const statisticTotalRevenueOrder = async (_, res) => {
     // query all order
     const getAllService = await ServiceByExamination.find().populate([
       { path: "service_examination", select: "price" },
-      ``,
     ]);
     let totalAmount = 0;
     let actualAmount = 0;
