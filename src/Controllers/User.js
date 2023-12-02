@@ -9,7 +9,10 @@ import {
 import bcrypt from "bcryptjs";
 import dotenv from "dotenv";
 import generateNextId from "../Utils/generateNextId.js";
+import jwt from "jsonwebtoken";
 dotenv.config();
+
+let refreshTokens = [];
 
 export const getAllUser = async (req, res) => {
   try {
@@ -253,6 +256,13 @@ export const signin = async (req, res) => {
     const refreshToken = generalRefreshToken({
       _id: user._id,
     });
+    // refreshTokens.push(refreshToken);
+    // await res.cookie("refreshToken", refreshToken, {
+    //   httpOnly: true,
+    //   secure: false,
+    //   path: "/",
+    //   sameSite: "strict",
+    // });
 
     return res.status(201).json({
       message: "Đăng nhập thành công ",
@@ -287,10 +297,13 @@ export const refreshToken = async (req, res) => {
     }
 
     const accessToken = generalAccessToken({ _id: user._id });
+    const newRefreshToken = generalRefreshToken({ _id: user._id });
 
     return res.status(200).json({
       message: "Tạo accessToken mới thành công!",
       accessToken,
+      refreshToken: newRefreshToken,
+      user,
     });
   } catch (error) {
     return res.status(500).json({
