@@ -189,3 +189,23 @@ export const updateServiceByExam = async (req, res) => {
     });
   }
 };
+
+export const updateServiceByIdExamination = async (req, res) => {
+  try {
+    const idExam = req.params.id;
+    const designation = await ServiceByExamination.find({
+      examinationId: idExam,
+    });
+    for (let i = 0; i < designation.length; i++) {
+      await ServiceByExamination.findByIdAndUpdate(designation[i].id, req.body);
+    }
+    return res.json({
+      message: "Cập nhật thành công !",
+      success: true,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: error.message,
+    });
+  }
+};

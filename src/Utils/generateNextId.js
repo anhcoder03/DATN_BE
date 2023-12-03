@@ -7,3 +7,9 @@ const generateNextId = (lastId, text) => {
 };
 
 export default generateNextId;
+
+export const generateNextNumber = (lastNumber) => {
+  if (!lastNumber) return 1;
+  const nextNumber = lastNumber + 1;
+  return nextNumber;
+};
