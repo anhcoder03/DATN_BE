@@ -15,6 +15,10 @@ const ServiceByExaminationSchema = new mongoose.Schema(
       enum: ["paid", "unpaid"],
       default: "unpaid",
     },
+    paymentMethod: {
+      type: Number,
+      enum: [1, 2], // ["Chuyển khoản", "Tiền mặt"]
+    },
     service_examination: {
       type: String,
       ref: "Service",

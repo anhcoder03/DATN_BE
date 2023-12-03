@@ -27,8 +27,8 @@ const MedicalExaminationSlipSchema = new mongoose.Schema(
       ref: "User",
     },
     waitingCode: {
-      type: String,
-      default: "",
+      type: Number,
+      default: 1,
     },
 
     symptom: {
