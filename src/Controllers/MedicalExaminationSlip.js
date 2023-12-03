@@ -2,14 +2,16 @@ import Customer from "../Models/Customer.js";
 import MedicalExaminationSlip from "../Models/MedicalExaminationSlip.js";
 import ServiceByExamination from "../Models/ServiceByExamination.js";
 import medicineExaminationSlipValidate from "../Schemas/MedicalExaminationSlip.js";
-import generateNextId, { generateNextNumber } from "../Utils/generateNextId.js";
+import generateNextId from "../Utils/generateNextId.js";
 import { sendMessageToDevices } from "../sendMessageToDevices.js";
 import moment from "moment/moment.js";
 import Notification from "../Models/Notification.js";
 import { getNotifyTokens } from "./NotifyToken.js";
 import Role from "../Models/Role.js";
-import { LinkFE } from "../Constants/LinkToFE.js";
-import sendNotifyMail from "../configs/nodemailer.js";
+import {
+  notifyMailBooking,
+  notifyMailExamDone,
+} from "../configs/nodemailer.js";
 
 export const getAllExamination = async (req, res) => {
   try {
@@ -188,8 +190,10 @@ export const createMedicalExaminationSlip = async (req, res) => {
           {},
           { sort: { waitingCode: -1 } }
         );
-        waitingCode = generateNextNumber(
-          lastWaitingCode ? lastWaitingCode.waitingCode : null
+
+        waitingCode = generateNextId(
+          lastWaitingCode ? lastWaitingCode.waitingCode : null,
+          "CK"
         );
       } else {
         const isExiting = await MedicalExaminationSlip.findById(examinationId);
@@ -199,6 +203,7 @@ export const createMedicalExaminationSlip = async (req, res) => {
           });
         }
       }
+
       const customerData = await Customer.findById(customerId);
       const customer = {
         _id: customerData._id,
@@ -248,7 +253,7 @@ export const createMedicalExaminationSlip = async (req, res) => {
           customer,
           id: examinationId,
           waitingCode,
-          day_booking: new Date().toISOString(),
+          day_booking: req.body.day_booking,
         });
         await Customer.findByIdAndUpdate(customerId, {
           $addToSet: { examination_history: examination._id },
@@ -263,15 +268,14 @@ export const createMedicalExaminationSlip = async (req, res) => {
             } đã đặt lịch khám vào lúc ${moment(examination.createdAt).format(
               "HH:mm DD/MM/yyyy"
             )}`,
-            `${LinkFE.RECEPTION_LINK}/${examination._id}/view`
+            `${process.env.RECEPTION_LINK}/${examination._id}/view`
           );
         }
 
         // Gửi mail thông báo cho khách hàng đã đặt lịch thành công
-        await sendNotifyMail(
+        await notifyMailBooking(
           customerData.email,
-          moment(examination.createdAt).format("HH:mm DD/MM/yyyy"),
-          "ĐẶT LỊCH KHÁM THÀNH CÔNG"
+          moment(examination.day_booking).format("HH:mm DD/MM/yyyy")
         ).catch((error) => console.log("Error send mail:", error));
 
         // Tạo mới thông báo model Notification
@@ -297,7 +301,7 @@ export const createMedicalExaminationSlip = async (req, res) => {
           } đã đặt lịch khám vào lúc ${moment(examination.createdAt).format(
             "HH:mm DD/MM/yyyy"
           )}`,
-          link: `${LinkFE.RECEPTION_LINK}/${examination._id}/view`,
+          link: `${process.env.RECEPTION_LINK}/${examination._id}/view`,
           status: 0,
         });
 
@@ -468,6 +472,18 @@ export const updateExamination = async (req, res) => {
           });
           await serviceByExamination.save();
         }
+
+        // Gửi mail thông báo khám nếu status là "done"
+        if (status === "done") {
+          await notifyMailExamDone(customerData.email, examination._id).catch(
+            (error) => console.log("Error send mail:", error)
+          );
+
+          console.log(
+            "Done trong truong hop dataExam?.customerId !== req.body.customerId va services && status !== cancel"
+          );
+        }
+
         return res.json({
           message: "Cập nhật Phiếu khám thành công!",
           examination,
@@ -498,7 +514,7 @@ export const updateExamination = async (req, res) => {
             }-${customerData.phone} đã bị hủy vào ${moment(
               examination.updatedAt
             ).format("HH:mm DD/MM/yyyy")}`,
-            `${LinkFE.RECEPTION_LINK}/${examination._id}/view`
+            `${process.env.RECEPTION_LINK}/${examination._id}/view`
           );
         }
 
@@ -529,7 +545,7 @@ export const updateExamination = async (req, res) => {
           ).format("HH:mm DD/MM/yyyy")}`,
           examinationId: examination._id,
           doctorId: examination.doctorId || "",
-          link: `${LinkFE.RECEPTION_LINK}/${examination._id}/view`,
+          link: `${process.env.RECEPTION_LINK}/${examination._id}/view`,
           status: 0,
         });
 
@@ -564,7 +580,7 @@ export const updateExamination = async (req, res) => {
             } đã bị hủy vào ${moment(examination.updatedAt).format(
               "HH:mm DD/MM/yyyy"
             )}`,
-            `${LinkFE.RECEPTION_LINK}/${examination._id}/view`
+            `${process.env.RECEPTION_LINK}/${examination._id}/view`
           );
         }
 
@@ -595,7 +611,7 @@ export const updateExamination = async (req, res) => {
           ).format("HH:mm DD/MM/yyyy")}`,
           examinationId: examination._id,
           doctorId: examination.doctorId || "",
-          link: `${LinkFE.RECEPTION_LINK}/${examination._id}/view`,
+          link: `${process.env.RECEPTION_LINK}/${examination._id}/view`,
           status: 0,
         });
 
@@ -606,7 +622,6 @@ export const updateExamination = async (req, res) => {
           examination,
         });
       }
-
       // Nếu không có Dịch vụ khám và cũng không phải trạng thái Hủy lịch hoặc Hủy khám
       else {
         const examination = await MedicalExaminationSlip.findByIdAndUpdate(
@@ -616,6 +631,17 @@ export const updateExamination = async (req, res) => {
           },
           { new: true }
         );
+
+        // Gửi mail thông báo khám nếu status là "done"
+        if (status === "done") {
+          await notifyMailExamDone(customerData.email, examination._id).catch(
+            (error) => console.log("Error send mail:", error)
+          );
+
+          console.log(
+            "Done trong truong hop dataExam?.customerId !== req.body.customerId va ko huy hoac ko co services"
+          );
+        }
 
         return res.json({
           message: "Cập nhật phiếu khám thành công!",
@@ -631,6 +657,8 @@ export const updateExamination = async (req, res) => {
         const examination = await MedicalExaminationSlip.findByIdAndUpdate(id, {
           ...req.body,
         });
+
+        const customerData = await Customer.findById(req.body.customerId);
 
         for (let i = 0; i < services?.length; i++) {
           const lastRecord = await ServiceByExamination.findOne().sort({
@@ -649,6 +677,15 @@ export const updateExamination = async (req, res) => {
           });
           await serviceByExamination.save();
         }
+
+        // Gửi mail thông báo khám nếu status là "done"
+        if (status === "done") {
+          await notifyMailExamDone(customerData.email, examination._id).catch(
+            (error) => console.log("Error send mail:", error)
+          );
+          console.log("Done trong truong hop co services va ko huy");
+        }
+
         return res.json({
           message: "Cập nhật phiếu khám thành công",
           examination,
@@ -677,7 +714,7 @@ export const updateExamination = async (req, res) => {
             }-${customerData.phone} đã bị hủy vào ${moment(
               examination.updatedAt
             ).format("HH:mm DD/MM/yyyy")}`,
-            `${LinkFE.RECEPTION_LINK}/${examination._id}/view`
+            `${process.env.RECEPTION_LINK}/${examination._id}/view`
           );
         }
 
@@ -709,7 +746,7 @@ export const updateExamination = async (req, res) => {
           ).format("HH:mm DD/MM/yyyy")}`,
           examinationId: examination._id,
           doctorId: examination.doctorId || "",
-          link: `${LinkFE.RECEPTION_LINK}/${examination._id}/view`,
+          link: `${process.env.RECEPTION_LINK}/${examination._id}/view`,
           status: 0,
         });
 
@@ -721,7 +758,7 @@ export const updateExamination = async (req, res) => {
         });
       }
 
-      // Nếu trạng thái là cancel_schedule (Hủy Lịch khám)
+      // Nếu trạng thái là cancel_schedule (Hủy Lịch  khám)
       else if (status === "cancel_schedule") {
         const examination = await MedicalExaminationSlip.findByIdAndUpdate(
           id,
@@ -744,7 +781,7 @@ export const updateExamination = async (req, res) => {
             } đã bị hủy vào ${moment(examination.updatedAt).format(
               "HH:mm DD/MM/yyyy"
             )}`,
-            `${LinkFE.RECEPTION_LINK}/${examination._id}/view`
+            `${process.env.RECEPTION_LINK}/${examination._id}/view`
           );
         }
 
@@ -776,7 +813,7 @@ export const updateExamination = async (req, res) => {
           ).format("HH:mm DD/MM/yyyy")}`,
           examinationId: examination._id,
           doctorId: examination.doctorId || "",
-          link: `${LinkFE.RECEPTION_LINK}/${examination._id}/view`,
+          link: `${process.env.RECEPTION_LINK}/${examination._id}/view`,
           status: 0,
         });
 
@@ -787,18 +824,23 @@ export const updateExamination = async (req, res) => {
           examination,
         });
       }
-
       // Nếu không có Dịch vụ khám và cũng không phải trạng thái Hủy lịch hoặc Hủy khám
       else {
+        const customerData = await Customer.findById(req.body.customerId);
         const examination = await MedicalExaminationSlip.findByIdAndUpdate(
           id,
-          {
-            ...req.body,
-            day_welcome:
-              status === "recetion" ? new Date().toISOString() : null,
-          },
+          req.body,
           { new: true }
         );
+
+        // Gửi mail thông báo khám nếu status là "done"
+        if (status === "done") {
+          await notifyMailExamDone(customerData.email, examination._id).catch(
+            (error) => console.log("Error send mail:", error)
+          );
+          console.log("Done trong truong hop ko services va ko huy");
+        }
+
         return res.json({
           message: "Cập nhật phiếu khám thành công!",
           examination,
