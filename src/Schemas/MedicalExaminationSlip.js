@@ -22,7 +22,7 @@ const medicineExaminationSlipValidate = Joi.object({
   diagnostic: Joi.string(),
   advice: Joi.string(),
   treatmentInstructions: Joi.string(),
-  waitingCode: Joi.string(),
+  waitingCode: Joi.number(),
   cancel_reason: Joi.string(),
   cancel_person: Joi.string(),
   cancel_requester: Joi.string(),

@@ -2,7 +2,7 @@ import Customer from "../Models/Customer.js";
 import MedicalExaminationSlip from "../Models/MedicalExaminationSlip.js";
 import ServiceByExamination from "../Models/ServiceByExamination.js";
 import medicineExaminationSlipValidate from "../Schemas/MedicalExaminationSlip.js";
-import generateNextId from "../Utils/generateNextId.js";
+import generateNextId, { generateNextNumber } from "../Utils/generateNextId.js";
 import { sendMessageToDevices } from "../sendMessageToDevices.js";
 import moment from "moment/moment.js";
 import Notification from "../Models/Notification.js";
@@ -191,9 +191,8 @@ export const createMedicalExaminationSlip = async (req, res) => {
           { sort: { waitingCode: -1 } }
         );
 
-        waitingCode = generateNextId(
-          lastWaitingCode ? lastWaitingCode.waitingCode : null,
-          "CK"
+        waitingCode = generateNextNumber(
+          lastWaitingCode ? lastWaitingCode.waitingCode : null
         );
       } else {
         const isExiting = await MedicalExaminationSlip.findById(examinationId);
