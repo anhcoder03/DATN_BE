@@ -1,6 +1,10 @@
 import Role from "../Models/Role.js";
 import User from "../Models/User.js";
-import { userValidate, changePasswordValidate } from "../Schemas/User.js";
+import {
+  userValidate,
+  changePasswordValidate,
+  resetPasswordValidate,
+} from "../Schemas/User.js";
 import {
   generalAccessToken,
   generalRefreshToken,
@@ -317,8 +321,9 @@ export const changePassword = async (req, res) => {
       abortEarly: false,
     });
     if (error) {
+      const errArr = error.details.map((err) => err.message);
       return res.status(401).json({
-        message: error.message,
+        message: errArr,
       });
     }
 
@@ -357,6 +362,13 @@ export const changePassword = async (req, res) => {
         message: "Đổi mật khẩu thất bại!",
       });
     }
+
+    // Gửi mail thông báo Đặt lại mật khẩu thành công
+    await notifyPasswordReseted(
+      user.email,
+      moment(Date.now()).format("HH:mm DD/MM/yyyy")
+    ).catch((error) => console.log("Send mail ERROR:", error));
+
     return res.status(200).json({
       message: "Đổi mật khẩu thành công!",
       user: userChangedPassword,
@@ -384,9 +396,14 @@ export const forgotPassword = async (req, res) => {
     }
 
     // Tạo mã xác thực và gửi mail cho người dùng
-    await generateVerifyToken(user);
+    const mailSent = await generateVerifyToken(user);
+    if (!mailSent) {
+      return res.status(400).json({
+        message: "Verify token sent failed!",
+      });
+    }
 
-    res.status(200).json({ message: "Verify token sent succeed!" });
+    return res.status(200).json({ message: "Verify token sent succeed!" });
   } catch (error) {
     return res.status(500).json({
       message: error.message,
@@ -396,13 +413,17 @@ export const forgotPassword = async (req, res) => {
 
 // Reset Password
 export const resetPassword = async (req, res) => {
+  const { email, token, newPassword } = req.body;
   try {
-    const { email, token, newPassword } = req.body;
+    const { error } = resetPasswordValidate.validate(req.body, {
+      abortEarly: false,
+    });
 
-    if (!email || !token || !newPassword) {
-      return res
-        .status(400)
-        .json({ message: "Missing required parameters in request body" });
+    if (error) {
+      const errArr = error.details.map((err) => err.message);
+      return res.status(400).json({
+        message: errArr,
+      });
     }
 
     const user = await User.findOne({ email });
@@ -419,7 +440,6 @@ export const resetPassword = async (req, res) => {
 
     const hashedPassword = await bcrypt.hash(newPassword, 10);
 
-    // Xử lý việc đặt lại mật khẩu tại đây (ví dụ: lưu mật khẩu mới vào cơ sở dữ liệu)
     user.password = hashedPassword;
     user.verifyToken = undefined;
     await user.save();

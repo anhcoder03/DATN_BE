@@ -119,6 +119,7 @@ export const generateVerifyTokenMail = async (email, verifyToken) => {
   console.log("Send mail to generate verify token succeed!");
 };
 
+// Gửi mail khi đã đổi mật khẩu xong
 export const notifyPasswordReseted = async (email, date_reset) => {
   // Tạo nội dung của mail
   const mailOptions = {
@@ -128,7 +129,7 @@ export const notifyPasswordReseted = async (email, date_reset) => {
     html: /*html*/ `
     <div>
     <p style="font-size: 16px; color: #002140; font-weight: 600;">Bạn đã thay đổi mật khẩu đăng nhập của mình lúc <span style="color: #f5a742;">${date_reset}</span>.</p>
-    <p style="font-size: 16px; color: #002140; font-weight: 600;">Giờ đây, bạn có thể sử dụng mật khẩu mới này để đăng nhập vào hệ thống <span style="color: #48A800;">Dr.MediPro</span>.</p>
+    <p style="font-size: 16px; color: #002140; font-weight: 600;">Giờ đây, bạn có thể sử dụng mật khẩu mới để đăng nhập vào hệ thống <span style="color: #48A800;">Dr.MediPro</span>.</p>
     <div><img src="https://res.cloudinary.com/mediapro-cloud/image/upload/v1700236522/mediaPro-DATN/logo3_j43xpj.png" alt="MediPro Logo" style="margin-top: 50px"/></div>
     </div>
     `,
