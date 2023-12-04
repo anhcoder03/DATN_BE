@@ -53,8 +53,8 @@ export const notifyMailExamDone = async (email, examinationId) => {
     <div>
     <p style="font-size: 16px; color: #002140; font-weight: 600;">Cảm ơn bạn đã khám bệnh tại <span style="color: #48A800;">Phòng Khám Dr.MediPro</span>!</p>
     <p style="font-size: 16px; color: #002140; font-weight: 600;">Bạn có thể nhấn vào nút "Xem thông tin" để xem chi tiết phiếu khám bệnh của bạn: </p>
-    <div><button style="padding: 5px; background-color: #f5a742; border-radius: 5px;"><a href=${linkToDetail} style="font-size: 14px; color: #002140; font-weight: 600; text-decoration: none;">Xem thông tin</a></button></div>
-    <img src="https://res.cloudinary.com/mediapro-cloud/image/upload/v1700236522/mediaPro-DATN/logo3_j43xpj.png" alt="MediPro Logo" style="margin-top: 50px"/>
+    <button style="padding: 5px; background-color: #f5a742; border-radius: 5px;"><a href=${linkToDetail} style="font-size: 14px; color: #002140; font-weight: 600; text-decoration: none;">Xem thông tin</a></button>
+    <div><img src="https://res.cloudinary.com/mediapro-cloud/image/upload/v1700236522/mediaPro-DATN/logo3_j43xpj.png" alt="MediPro Logo" style="margin-top: 50px"/></div>
     </div>
     `,
   };
@@ -79,4 +79,79 @@ export const notifyMailExamDone = async (email, examinationId) => {
   }
 
   console.log("Send mail to examination notify succeed!");
+};
+
+// Gửi mail tạo mã xác thực
+export const generateVerifyTokenMail = async (email, verifyToken) => {
+  // Tạo nội dung của mail
+  const mailOptions = {
+    from: `Phòng Khám Dr.MediPro ${process.env.EMAIL_SENDER}`,
+    to: email,
+    subject: "ĐẶT LẠI MẬT KHẨU CỦA BẠN",
+    html: /*html*/ `
+    <div>
+    <p style="font-size: 16px; color: #002140; font-weight: 600;">Bạn đang thực hiện chức năng "Quên mật khẩu", vui lòng nhập mã xác thực dưới đây để đặt lại mật khẩu của bạn. Lưu ý mã này sẽ hết hạn sau 1 phút.</p>
+    <button style=" padding: 8px 10px; background-color: #48A800; font-size: 18px; border: none; color: #FFF; font-weight: 700; user-select: text;">${verifyToken}</button>
+    <div><img src="https://res.cloudinary.com/mediapro-cloud/image/upload/v1700236522/mediaPro-DATN/logo3_j43xpj.png" alt="MediPro Logo" style="margin-top: 50px"/></div>
+    </div>
+    `,
+  };
+
+  const transporter = nodemailer.createTransport({
+    host: "smtp.gmail.com",
+    port: 465,
+    secure: true,
+    service: "gmail",
+    auth: {
+      user: process.env.EMAIL_SENDER,
+      pass: process.env.EMAIL_PASSWORD,
+    },
+  });
+
+  // Gửi mail với transporter đã được config xong
+  const info = await transporter.sendMail(mailOptions);
+  if (!info) {
+    return res.status(400).json({
+      message: "An error occurred while sending the email!",
+    });
+  }
+
+  console.log("Send mail to generate verify token succeed!");
+};
+
+export const notifyPasswordReseted = async (email, date_reset) => {
+  // Tạo nội dung của mail
+  const mailOptions = {
+    from: `Phòng Khám Dr.MediPro ${process.env.EMAIL_SENDER}`,
+    to: email,
+    subject: "MẬT KHẨU CỦA BẠN ĐÃ ĐƯỢC THAY ĐỔI",
+    html: /*html*/ `
+    <div>
+    <p style="font-size: 16px; color: #002140; font-weight: 600;">Bạn đã thay đổi mật khẩu đăng nhập của mình lúc <span style="color: #f5a742;">${date_reset}</span>.</p>
+    <p style="font-size: 16px; color: #002140; font-weight: 600;">Giờ đây, bạn có thể sử dụng mật khẩu mới này để đăng nhập vào hệ thống <span style="color: #48A800;">Dr.MediPro</span>.</p>
+    <div><img src="https://res.cloudinary.com/mediapro-cloud/image/upload/v1700236522/mediaPro-DATN/logo3_j43xpj.png" alt="MediPro Logo" style="margin-top: 50px"/></div>
+    </div>
+    `,
+  };
+
+  const transporter = nodemailer.createTransport({
+    host: "smtp.gmail.com",
+    port: 465,
+    secure: true,
+    service: "gmail",
+    auth: {
+      user: process.env.EMAIL_SENDER,
+      pass: process.env.EMAIL_PASSWORD,
+    },
+  });
+
+  // Gửi mail với transporter đã được config xong
+  const info = await transporter.sendMail(mailOptions);
+  if (!info) {
+    return res.status(400).json({
+      message: "An error occurred while sending the email!",
+    });
+  }
+
+  console.log("Send mail to generate verify token succeed!");
 };

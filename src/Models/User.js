@@ -15,6 +15,10 @@ const userSchema = new mongoose.Schema(
       type: String,
       ref: "Role",
     },
+    verifyToken: {
+      token: String,
+      expirationTime: Date,
+    },
   },
   { versionKey: false, timestamps: true }
 );

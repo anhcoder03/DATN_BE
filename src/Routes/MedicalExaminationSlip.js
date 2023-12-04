@@ -15,7 +15,7 @@ router.get(
   generalAuth,
   getAllExamination
 );
-router.get("/medicalExaminationSlip/:id", authenticate, getOne);
+router.get("/medicalExaminationSlip/:id", getOne);
 router.post(
   "/medicalExaminationSlip",
   authenticate,

@@ -34,6 +34,7 @@ export const userValidate = Joi.object({
   avatar: Joi.required().messages({
     "string.empty": "Ảnh không được để trống",
   }),
+  verifyToken: Joi.any(),
 });
 
 export const changePasswordValidate = Joi.object({

@@ -9,10 +9,10 @@ import {
 import bcrypt from "bcryptjs";
 import dotenv from "dotenv";
 import generateNextId from "../Utils/generateNextId.js";
-import jwt from "jsonwebtoken";
+import generateVerifyToken from "../Middlewares/generateVerifyToken.js";
+import { notifyPasswordReseted } from "../configs/nodemailer.js";
+import moment from "moment/moment.js";
 dotenv.config();
-
-let refreshTokens = [];
 
 export const getAllUser = async (req, res) => {
   try {
@@ -361,6 +361,78 @@ export const changePassword = async (req, res) => {
       message: "Đổi mật khẩu thành công!",
       user: userChangedPassword,
     });
+  } catch (error) {
+    return res.status(500).json({
+      message: error.message,
+    });
+  }
+};
+
+// Forgot Password
+export const forgotPassword = async (req, res) => {
+  const { email } = req.body;
+  try {
+    if (!email) {
+      return res
+        .status(400)
+        .json({ message: "You haven't provided an Email address!" });
+    }
+
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ error: "User not found!" });
+    }
+
+    // Tạo mã xác thực và gửi mail cho người dùng
+    await generateVerifyToken(user);
+
+    res.status(200).json({ message: "Verify token sent succeed!" });
+  } catch (error) {
+    return res.status(500).json({
+      message: error.message,
+    });
+  }
+};
+
+// Reset Password
+export const resetPassword = async (req, res) => {
+  try {
+    const { email, token, newPassword } = req.body;
+
+    if (!email || !token || !newPassword) {
+      return res
+        .status(400)
+        .json({ message: "Missing required parameters in request body" });
+    }
+
+    const user = await User.findOne({ email });
+
+    if (
+      !user ||
+      user.verifyToken.token !== token ||
+      Date.now() > user.verifyToken.expirationTime
+    ) {
+      return res
+        .status(401)
+        .json({ message: "Invalid or expired verification code!" });
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    // Xử lý việc đặt lại mật khẩu tại đây (ví dụ: lưu mật khẩu mới vào cơ sở dữ liệu)
+    user.password = hashedPassword;
+    user.verifyToken = undefined;
+    await user.save();
+
+    // Gửi mail thông báo Đặt lại mật khẩu thành công
+    await notifyPasswordReseted(
+      email,
+      moment(Date.now()).format("HH:mm DD/MM/yyyy")
+    ).catch((error) => console.log("Send mail ERROR:", error));
+
+    return res
+      .status(200)
+      .json({ message: "Password reset succeed! You can login." });
   } catch (error) {
     return res.status(500).json({
       message: error.message,
