@@ -7,9 +7,11 @@ import {
   getOneUser,
   refreshToken,
   resetPassword,
+  sendOTP,
   signin,
   signup,
   updateUser,
+  verifyLoginOTP,
 } from "../Controllers/User.js";
 import { adminAuth, generalAuth } from "../Middlewares/authorization.js";
 import authenticate from "../Middlewares/authenticate.js";
@@ -25,4 +27,6 @@ router.put("/user/:id", authenticate, updateUser);
 router.put("/changePassword", authenticate, changePassword);
 router.post("/forgotPassword", forgotPassword);
 router.post("/resetPassword", resetPassword);
+router.post("/sendOTP", sendOTP);
+router.post("/verifyOTP", verifyLoginOTP);
 export default router;

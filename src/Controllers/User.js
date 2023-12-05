@@ -13,11 +13,15 @@ import {
 import bcrypt from "bcryptjs";
 import dotenv from "dotenv";
 import generateNextId from "../Utils/generateNextId.js";
-import generateVerifyToken from "../Middlewares/generateVerifyToken.js";
+import {
+  generateOtpCode,
+  generateVerifyToken,
+} from "../Middlewares/generateVerifyToken.js";
 import { notifyPasswordReseted } from "../configs/nodemailer.js";
 import moment from "moment/moment.js";
 dotenv.config();
 
+// LIst User
 export const getAllUser = async (req, res) => {
   try {
     const {
@@ -50,6 +54,7 @@ export const getAllUser = async (req, res) => {
   }
 };
 
+// Detail User
 export const getOneUser = async (req, res) => {
   try {
     const user = await User.findById(req.params.id).populate("role");
@@ -69,6 +74,7 @@ export const getOneUser = async (req, res) => {
   }
 };
 
+// Delete User
 export const deleteUser = async (req, res) => {
   try {
     const user = await User.findByIdAndRemove(req.params.id);
@@ -93,6 +99,7 @@ export const deleteUser = async (req, res) => {
   }
 };
 
+// Update User
 export const updateUser = async (req, res) => {
   try {
     const id = req.params.id;
@@ -165,6 +172,7 @@ export const updateUser = async (req, res) => {
   }
 };
 
+// Sign up
 export const signup = async (req, res) => {
   try {
     const { error } = userValidate.validate(req.body, {
@@ -224,6 +232,7 @@ export const signup = async (req, res) => {
   }
 };
 
+// Sign in
 export const signin = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -250,6 +259,8 @@ export const signin = async (req, res) => {
       });
     }
     user.password = undefined;
+    user.verifyToken = undefined;
+    user.otpCode = undefined;
 
     // tạo access token
     const accessToken = generalAccessToken({
@@ -281,6 +292,7 @@ export const signin = async (req, res) => {
   }
 };
 
+// Refresh Token
 export const refreshToken = async (req, res) => {
   const { refreshToken } = req.body;
   if (!refreshToken) {
@@ -396,14 +408,9 @@ export const forgotPassword = async (req, res) => {
     }
 
     // Tạo mã xác thực và gửi mail cho người dùng
-    const mailSent = await generateVerifyToken(user);
-    if (!mailSent) {
-      return res.status(400).json({
-        message: "Verify token sent failed!",
-      });
-    }
+    await generateVerifyToken(user);
 
-    return res.status(200).json({ message: "Verify token sent succeed!" });
+    return res.status(200).json({ message: "Verify token sent SUCCEED!" });
   } catch (error) {
     return res.status(500).json({
       message: error.message,
@@ -413,7 +420,7 @@ export const forgotPassword = async (req, res) => {
 
 // Reset Password
 export const resetPassword = async (req, res) => {
-  const { email, token, newPassword } = req.body;
+  const { token, newPassword } = req.body;
   try {
     const { error } = resetPasswordValidate.validate(req.body, {
       abortEarly: false,
@@ -426,7 +433,7 @@ export const resetPassword = async (req, res) => {
       });
     }
 
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ "verifyToken.token": token });
 
     if (
       !user ||
@@ -446,13 +453,90 @@ export const resetPassword = async (req, res) => {
 
     // Gửi mail thông báo Đặt lại mật khẩu thành công
     await notifyPasswordReseted(
-      email,
+      user.email,
       moment(Date.now()).format("HH:mm DD/MM/yyyy")
     ).catch((error) => console.log("Send mail ERROR:", error));
 
     return res
       .status(200)
       .json({ message: "Password reset succeed! You can login." });
+  } catch (error) {
+    return res.status(500).json({
+      message: error.message,
+    });
+  }
+};
+
+// Login OTP
+export const sendOTP = async (req, res) => {
+  const { email } = req.body;
+  try {
+    if (!email) {
+      return res
+        .status(400)
+        .json({ message: "You haven't provided an Email address!" });
+    }
+
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ error: "User not found!" });
+    }
+
+    // Tạo mã OTP và gửi mail cho người dùng
+    await generateOtpCode(user);
+
+    return res.status(200).json({ message: "OTP code sent SUCCEED!" });
+  } catch (error) {
+    return res.status(500).json({
+      message: error.message,
+    });
+  }
+};
+
+export const verifyLoginOTP = async (req, res) => {
+  const { otp } = req.body;
+  try {
+    if (!otp) {
+      return res
+        .status(400)
+        .json({ message: "You haven't provided an OTP code!" });
+    }
+
+    const user = await User.findOne({ "otpCode.otp": otp });
+    if (!user) {
+      return res.status(404).json({ error: "User not found!" });
+    }
+
+    if (
+      !user ||
+      user.otpCode.otp !== otp ||
+      Date.now() > user.otpCode.expirationTime
+    ) {
+      return res.status(401).json({ message: "Invalid or expired OTP code!" });
+    }
+
+    user.otpCode = undefined;
+    await user.save();
+
+    user.verifyToken = undefined;
+    user.password = undefined;
+
+    // tạo access token
+    const accessToken = generalAccessToken({
+      _id: user._id,
+    });
+
+    // tạo refresh token
+    const refreshToken = generalRefreshToken({
+      _id: user._id,
+    });
+
+    return res.status(200).json({
+      message: "Login with OTP code SUCCEED!",
+      accessToken,
+      refreshToken,
+      user,
+    });
   } catch (error) {
     return res.status(500).json({
       message: error.message,
