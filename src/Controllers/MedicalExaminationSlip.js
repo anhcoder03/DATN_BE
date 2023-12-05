@@ -825,18 +825,19 @@ export const updateExamination = async (req, res) => {
       }
       // Nếu không có Dịch vụ khám và cũng không phải trạng thái Hủy lịch hoặc Hủy khám
       else {
-        const customerData = await Customer.findById(req.body.customerId);
+        // const customerData = await Customer.findById(req.body.customerId);
         const examination = await MedicalExaminationSlip.findByIdAndUpdate(
           id,
           req.body,
           { new: true }
-        );
+        ).populate([{ path: "customerId" }]);
 
         // Gửi mail thông báo khám nếu status là "done"
         if (status === "done") {
-          await notifyMailExamDone(customerData.email, examination._id).catch(
-            (error) => console.log("Error send mail:", error)
-          );
+          await notifyMailExamDone(
+            examination.customerId?.email,
+            examination._id
+          ).catch((error) => console.log("Error send mail:", error));
           console.log("Done trong truong hop ko services va ko huy");
         }
 
