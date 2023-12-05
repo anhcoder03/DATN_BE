@@ -119,6 +119,44 @@ export const generateVerifyTokenMail = async (email, verifyToken) => {
   console.log("Send mail to generate verify token succeed!");
 };
 
+// Gửi mail tạo mã OTP
+export const generateOtpCodeMail = async (email, otpCode) => {
+  // Tạo nội dung của mail
+  const mailOptions = {
+    from: `Phòng Khám Dr.MediPro ${process.env.EMAIL_SENDER}`,
+    to: email,
+    subject: "ĐĂNG NHẬP VÀO HỆ THỐNG",
+    html: /*html*/ `
+    <div>
+    <p style="font-size: 16px; color: #002140; font-weight: 600;">Bạn đang thực hiện chức năng "Đăng nhập với OTP", vui lòng nhập mã dưới đây để đăng nhập vào hệ thống. Lưu ý mã này sẽ hết hạn sau 1 phút.</p>
+    <button style=" padding: 8px 10px; background-color: #f5a742; font-size: 18px; border: none; color: #FFF; font-weight: 700; user-select: text;">${otpCode}</button>
+    <div><img src="https://res.cloudinary.com/mediapro-cloud/image/upload/v1700236522/mediaPro-DATN/logo3_j43xpj.png" alt="MediPro Logo" style="margin-top: 50px"/></div>
+    </div>
+    `,
+  };
+
+  const transporter = nodemailer.createTransport({
+    host: "smtp.gmail.com",
+    port: 465,
+    secure: true,
+    service: "gmail",
+    auth: {
+      user: process.env.EMAIL_SENDER,
+      pass: process.env.EMAIL_PASSWORD,
+    },
+  });
+
+  // Gửi mail với transporter đã được config xong
+  const info = await transporter.sendMail(mailOptions);
+  if (!info) {
+    return res.status(400).json({
+      message: "An error occurred while sending the email!",
+    });
+  }
+
+  console.log("Send mail to generate verify token succeed!");
+};
+
 // Gửi mail khi đã đổi mật khẩu xong
 export const notifyPasswordReseted = async (email, date_reset) => {
   // Tạo nội dung của mail

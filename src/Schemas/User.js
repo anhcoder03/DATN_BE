@@ -35,6 +35,7 @@ export const userValidate = Joi.object({
     "string.empty": "Ảnh không được để trống",
   }),
   verifyToken: Joi.any(),
+  otpCode: Joi.any(),
 });
 
 export const changePasswordValidate = Joi.object({
@@ -55,13 +56,6 @@ export const changePasswordValidate = Joi.object({
 });
 
 export const resetPasswordValidate = Joi.object({
-  email: Joi.string()
-    .email({ tlds: { allow: false } })
-    .required()
-    .messages({
-      "string.empty": "Email không được để trống",
-      "string.email": "Email không đúng định dạng",
-    }),
   token: Joi.string().required().trim().messages({
     "string.empty": "Mã xác thực không được để trống",
     "any.required": "Trường Mã xác thực là bắt buộc!",
