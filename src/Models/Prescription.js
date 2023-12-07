@@ -14,6 +14,10 @@ const PrescriptionSchema = new Schema(
       type: String,
       ref: "MedicalExaminationSlip",
     },
+    customerId: {
+      type: String,
+      ref: "Customer",
+    },
     customer: {
       _id: String,
       name: String,

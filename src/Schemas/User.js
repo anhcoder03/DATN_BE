@@ -2,7 +2,8 @@ import Joi from "joi";
 export const userValidate = Joi.object({
   _id: Joi.string(),
   name: Joi.string().required().trim().messages({
-    "string.empty": "Tên không được để trống",
+    "string.empty": "Tên người dùng không được để trống",
+    "any.required": "Trường Tên người dùng là bắt buộc!",
   }),
   email: Joi.string()
     .email({ tlds: { allow: false } })
@@ -25,17 +26,32 @@ export const userValidate = Joi.object({
     .messages({
       "string.empty": "Vui lòng nhập số điện thoại",
       "string.pattern.base": "Số điện thoại không đúng định dạng",
-      "string.min": "Số điện thoại phải có ít nhất 10 chữ số",
-      "string.max": "Số điện thoại không được vượt quá 11 chữ số",
+      "string.min": "Số điện thoại phải có ít nhất 10 số",
+      "string.max": "Số điện thoại không được vượt quá 11 số",
     }),
-  role: Joi.required().messages({
+  role: Joi.string().required().messages({
     "string.empty": "Vai trò không được để trống",
+    "any.required": "Trường Vai trò là bắt buộc!",
   }),
-  avatar: Joi.required().messages({
-    "string.empty": "Ảnh không được để trống",
-  }),
+  avatar: Joi.string(),
   verifyToken: Joi.any(),
   otpCode: Joi.any(),
+});
+
+export const signInValidate = Joi.object({
+  email: Joi.string()
+    .email({ tlds: { allow: false } })
+    .required()
+    .messages({
+      "string.empty": "Email không được để trống",
+      "string.email": "Email không đúng định dạng",
+    }),
+  password: Joi.string().required().trim().min(6).max(15).messages({
+    "string.empty": "Mật khẩu không được để trống",
+    "any.required": "Trường Mật khẩu là bắt buộc!",
+    "string.min": "Mật khẩu phải có ít nhất 6 ký tự",
+    "string.max": "Mật khẩu không được vượt quá 15 ký tự",
+  }),
 });
 
 export const changePasswordValidate = Joi.object({

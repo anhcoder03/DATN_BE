@@ -28,6 +28,9 @@ export const getAllExamination = async (req, res) => {
       day_booking,
       day_welcome,
       day_waiting,
+      day_done,
+      day_running,
+      day_cancel,
     } = req.query;
     let query = {};
     const options = {
@@ -120,6 +123,16 @@ export const getAllExamination = async (req, res) => {
       };
     }
 
+    if (day_done) {
+      query.day_done = day_done;
+    }
+    if (day_running) {
+      query.day_running = day_running;
+    }
+    if (day_cancel) {
+      query.day_cancel = day_cancel;
+    }
+
     if (doctorId) {
       query.doctorId = doctorId;
     }
@@ -166,6 +179,18 @@ export const createMedicalExaminationSlip = async (req, res) => {
   try {
     const roleAuth = await Role.findById(req.user.role);
     if (roleAuth.roleNumber === 0 || roleAuth.roleNumber === 2) {
+      // Validate form
+      const { error } = medicineExaminationSlipValidate.validate(req.body, {
+        abortEarly: false,
+      });
+
+      if (error) {
+        const errArr = error.details.map((err) => err.message);
+        return res.status(401).json({
+          message: errArr,
+        });
+      }
+
       // Kiểm tra xem có mã ID được cung cấp hay không
       let examinationId = req.body._id;
       const customerId = req.body.customerId;
@@ -208,6 +233,7 @@ export const createMedicalExaminationSlip = async (req, res) => {
         _id: customerData._id,
         name: customerData.name,
         phone: customerData.phone,
+        
       };
       const data = req.body;
       const { examinationServiceId, ...rest } = data;
@@ -390,6 +416,18 @@ export const updateExamination = async (req, res) => {
     const id = req.params.id;
     const services = req.body.examinationServiceId;
     const user = req.user;
+
+    // Validate form
+    const { error } = medicineExaminationSlipValidate.validate(req.body, {
+      abortEarly: false,
+    });
+
+    if (error) {
+      const errArr = error.details.map((err) => err.message);
+      return res.status(401).json({
+        message: errArr,
+      });
+    }
 
     // Tìm ra Vai trò của User
     const { roleNumber } = await Role.findById({ _id: user.role });

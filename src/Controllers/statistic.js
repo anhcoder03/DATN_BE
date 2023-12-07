@@ -1,10 +1,7 @@
-import Order from "../Models/Order.js";
 import ServiceByExamination from "../Models/ServiceByExamination.js";
-import Service from "../Models/Service.js";
 import MedicalExaminationSlip from "../Models/MedicalExaminationSlip.js";
 import Customer from "../Models/Customer.js";
 import User from "../Models/User.js";
-
 import moment from "moment";
 
 // Tổng doanh thu khám

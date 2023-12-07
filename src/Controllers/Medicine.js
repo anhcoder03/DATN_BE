@@ -1,7 +1,6 @@
 import medicineValidate from "../Schemas/Medicine.js";
 import Medicine from "../Models/Medicine.js";
 import CategoryModel from "../Models/Category.js";
-import mongoose from "mongoose";
 const getAllMedicine = async (req, res) => {
   const {
     _page = 1,

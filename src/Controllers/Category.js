@@ -56,6 +56,7 @@ export const getOneCategory = async (req, res) => {
     });
   }
 };
+
 export const addCategory = async (req, res) => {
   try {
     const { error } = categoryValidate.validate(req.body, {

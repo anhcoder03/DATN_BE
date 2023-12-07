@@ -1,8 +1,9 @@
 import Joi from "joi";
 const customerValidate = Joi.object({
-  _id: Joi.any(),
+  _id: Joi.string(),
   name: Joi.string().trim().required().messages({
     "string.empty": "Tên khách hàng không được để trống",
+    "any.required": "Trường Tên khách hàng là bắt buộc!",
   }),
   province: Joi.object().required().messages({
     "string.empty": "Trường Tỉnh không được để trống",
@@ -34,8 +35,10 @@ const customerValidate = Joi.object({
   }),
   email: Joi.string()
     .email({ tlds: { allow: false } })
+    .required()
     .messages({
-      "string.email": "Please enter a valid email address",
+      "string.empty": "Email không được để trống",
+      "string.email": "Email không đúng định dạng",
     }),
   examination_history: Joi.any(),
   note: Joi.any(),

@@ -4,6 +4,7 @@ import {
   userValidate,
   changePasswordValidate,
   resetPasswordValidate,
+  signInValidate,
 } from "../Schemas/User.js";
 import {
   generalAccessToken,
@@ -108,8 +109,9 @@ export const updateUser = async (req, res) => {
       abortEarly: false,
     });
     if (error) {
+      const errArr = error.details.map((err) => err.message);
       return res.status(401).json({
-        message: error.message,
+        message: errArr,
       });
     }
     const user = await User.findById(id);
@@ -180,8 +182,9 @@ export const signup = async (req, res) => {
     });
 
     if (error) {
+      const errArr = error.details.map((err) => err.message);
       return res.status(401).json({
-        message: error.message,
+        message: errArr,
       });
     }
 
@@ -234,12 +237,13 @@ export const signup = async (req, res) => {
 
 // Sign in
 export const signin = async (req, res) => {
+  const { email, password } = req.body;
   try {
-    const { email, password } = req.body;
-    if (!email || !password) {
-      return res.status(400).json({
-        success: false,
-        message: "Vui lòng điền đầy đủ thông tin",
+    const { error } = signInValidate.validate(req.body, { abortEarly: false });
+    if (error) {
+      const errArr = error.details.map((err) => err.message);
+      return res.status(401).json({
+        message: errArr,
       });
     }
 

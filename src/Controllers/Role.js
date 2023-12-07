@@ -73,8 +73,9 @@ export const addRole = async (req, res) => {
     });
 
     if (error) {
+      const errArr = error.details.map((err) => err.message);
       return res.status(400).json({
-        message: error.message,
+        message: errArr,
       });
     }
 
@@ -115,8 +116,9 @@ export const updateRole = async (req, res) => {
     });
 
     if (error) {
+      const errArr = error.details.map((err) => err.message);
       return res.status(400).json({
-        message: error.message,
+        message: errArr,
       });
     }
     // Kiểm tra xem tên mới đã tồn tại với _id khác
