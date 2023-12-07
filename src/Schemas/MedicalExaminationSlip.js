@@ -1,10 +1,11 @@
 import Joi from "joi";
 const medicineExaminationSlipValidate = Joi.object({
   _id: Joi.string(),
-  customerId: Joi.string().required().trim().messages({
-    "string.empty": "ID khách hàng không được để trống",
-    "any.required": "Trường ID khách hàng là bắt buộc!",
-  }),
+  customerId: Joi.any(),
+  // .required().trim().messages({
+  //   "string.empty": "ID khách hàng không được để trống",
+  //   "any.required": "Trường ID khách hàng là bắt buộc!",
+  // }),
   doctorId: Joi.any(),
   // .required().trim().messages({
   //   "string.empty": "ID bác sĩ không được để trống",
@@ -15,10 +16,11 @@ const medicineExaminationSlipValidate = Joi.object({
     "string.empty": "Trạng thái phiếu khám không được để trống",
     "any.required": "Trường Trạng thái phiếu khám là bắt buộc!",
   }),
-  staffId: Joi.string().required().trim().messages({
-    "string.empty": "Nhân viên tiếp đón không được để trống",
-    "any.required": "Trường Nhân viên tiếp đón là bắt buộc!",
-  }),
+  staffId: Joi.any(),
+  // .required().trim().messages({
+  //   "string.empty": "Nhân viên tiếp đón không được để trống",
+  //   "any.required": "Trường Nhân viên tiếp đón là bắt buộc!",
+  // }),
   clinicId: Joi.any(),
   // .required().trim().messages({
   //   "string.empty": "Phòng khám không được để trống",
