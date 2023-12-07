@@ -19,10 +19,11 @@ const medicineExaminationSlipValidate = Joi.object({
     "string.empty": "Nhân viên tiếp đón không được để trống",
     "any.required": "Trường Nhân viên tiếp đón là bắt buộc!",
   }),
-  clinicId: Joi.string().required().trim().messages({
-    "string.empty": "Phòng khám không được để trống",
-    "any.required": "Trường Phòng khám là bắt buộc!",
-  }),
+  clinicId: Joi.any(),
+  // .required().trim().messages({
+  //   "string.empty": "Phòng khám không được để trống",
+  //   "any.required": "Trường Phòng khám là bắt buộc!",
+  // }),
   day_booking: Joi.date(),
   day_cancel: Joi.date(),
   day_done: Joi.date(),
