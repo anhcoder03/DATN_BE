@@ -27,6 +27,11 @@ export const getAllPrescription = async (req, res) => {
     },
     populate: [
       { path: "doctorId", select: "_id name phone" },
+      {
+        path: "customerId",
+        select:
+          "_id name province district commune detailedAddress phone dateOfBirth gender email",
+      },
       { path: "medicalExaminationSlipId" },
       { path: "medicines.medicineId", select: "_id name price" },
     ],
@@ -106,6 +111,11 @@ export const getOnePrescription = async (req, res) => {
     const prescription = await Prescription.findById(id)
       .populate("doctorId")
       .populate("medicalExaminationSlipId")
+      .populate({
+        path: "customerId",
+        select:
+          "_id name province district commune detailedAddress phone dateOfBirth gender email",
+      })
       .populate({ path: "medicines.medicineId", select: "_id name price" });
 
     if (!prescription) {
@@ -140,11 +150,18 @@ export const createPrescription = async (req, res) => {
     }
 
     // create customer
+    let customerId = "";
     let customer = "";
     const medicalExaminationSlip = await MedicalExaminationSlip.findById(
       medicalExaminationSlipId
     );
-    if (medicalExaminationSlip && medicalExaminationSlip.customer) {
+
+    if (
+      medicalExaminationSlip &&
+      medicalExaminationSlip.customer &&
+      medicalExaminationSlip.customerId
+    ) {
+      customerId = medicalExaminationSlip.customerId;
       customer = medicalExaminationSlip.customer;
     }
     // create doctor
@@ -172,6 +189,7 @@ export const createPrescription = async (req, res) => {
       ...req.body,
       _id: prescriptionId,
       customer,
+      customerId,
       doctor,
     });
 
@@ -266,11 +284,17 @@ export const updatePrescription = async (req, res) => {
     }
 
     // create customer
+    let customerId = "";
     let customer = "";
     const medicalExaminationSlip = await MedicalExaminationSlip.findById(
       medicalExaminationSlipId
     );
-    if (medicalExaminationSlip && medicalExaminationSlip.customer) {
+    if (
+      medicalExaminationSlip &&
+      medicalExaminationSlip.customer &&
+      medicalExaminationSlip.customerId
+    ) {
+      customerId = medicalExaminationSlip.customerId;
       customer = medicalExaminationSlip.customer;
     }
     // create doctor
@@ -322,7 +346,9 @@ export const updatePrescription = async (req, res) => {
     };
 
     const order = await Order.findOne({ prescriptionId: id });
-    await Order.findByIdAndUpdate(order._id, newOrder);
+    if (order) {
+      await Order.findByIdAndUpdate(order._id, newOrder);
+    }
 
     if (!prescription) {
       return res.status(400).json({
@@ -345,6 +371,7 @@ export const updatePrescription = async (req, res) => {
 export const deletePrescription = async (req, res) => {
   const { id } = req.params;
   try {
+    console.log(">>>id:", id);
     const prescription = await Prescription.findById(id);
     if (!prescription) {
       return res.status(400).json({
@@ -358,11 +385,11 @@ export const deletePrescription = async (req, res) => {
     }
 
     const order = await Order.findOne({ prescriptionId: id });
-
-    const prescriptionDeleted = Prescription.findByIdAndDelete(id);
-    const orderDeleted = Order.findByIdAndDelete(order._id);
-
-    await Promise.all([prescriptionDeleted, orderDeleted]);
+    console.log(">>>order:", order);
+    if (order) {
+      await Order.findByIdAndDelete(order._id);
+    }
+    await Prescription.findByIdAndDelete(id);
 
     return res.status(200).json({
       message: "Xóa Kê đơn thành công!",

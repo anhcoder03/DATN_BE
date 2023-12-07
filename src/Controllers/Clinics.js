@@ -72,8 +72,9 @@ export const addClinic = async (req, res) => {
     });
 
     if (error) {
+      const errArr = error.details.map((err) => err.message);
       return res.status(401).json({
-        message: error.message,
+        message: errArr,
       });
     }
     // Kiểm tra xem có mã ID được cung cấp hay không
@@ -117,8 +118,9 @@ export const updateClinic = async (req, res) => {
     });
 
     if (error) {
+      const errArr = error.details.map((err) => err.message);
       return res.status(401).json({
-        message: error.message,
+        message: errArr,
       });
     }
 

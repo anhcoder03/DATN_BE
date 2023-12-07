@@ -76,8 +76,9 @@ export const addCustomer = async (req, res) => {
     });
 
     if (error) {
+      const errArr = error.details.map((err) => err.message);
       return res.status(400).json({
-        message: "Dữ liệu không hợp lệ: " + error.message,
+        message: errArr,
       });
     }
     // Kiểm tra xem có mã ID được cung cấp hay không
@@ -148,8 +149,9 @@ export const updateCustomer = async (req, res) => {
     });
 
     if (error) {
+      const errArr = error.details.map((err) => err.message);
       return res.status(400).json({
-        message: "Dữ liệu không hợp lệ: " + error.message,
+        message: errArr,
       });
     }
 

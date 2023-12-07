@@ -46,6 +46,7 @@ const PrescriptionValidate = Joi.object({
     "any.required": "Trường Thuốc là bắt buộc!",
   }),
   status: Joi.string().default("Chưa hoàn thành"),
+  customerId: Joi.string(),
   note: Joi.string().empty(Joi.allow()).trim(),
 });
 

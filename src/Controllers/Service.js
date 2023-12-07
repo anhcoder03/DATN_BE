@@ -70,8 +70,9 @@ export const addService = async (req, res) => {
     });
 
     if (error) {
+      const errArr = error.details.map((err) => err.message);
       return res.status(401).json({
-        message: error.message,
+        message: errArr,
       });
     }
 
@@ -119,8 +120,9 @@ export const updateService = async (req, res) => {
     });
 
     if (error) {
+      const errArr = error.details.map((err) => err.message);
       return res.status(401).json({
-        message: error.message,
+        message: errArr,
       });
     }
 
