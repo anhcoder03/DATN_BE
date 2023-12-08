@@ -123,13 +123,25 @@ export const addCustomer = async (req, res) => {
 
 export const deleteCustomer = async (req, res) => {
   try {
-    const customer = await Customer.findByIdAndRemove(req.params.id);
+    const customer = await Customer.findById(req.params.id);
 
     if (!customer) {
       return res.status(404).json({
         message: "Khách hàng không tồn tại!",
       });
     }
+    if (
+      customer &&
+      customer.examination_history &&
+      customer.examination_history.length
+    ) {
+      return res.status(400).json({
+        message:
+          "Khách hàng này đã có lịch sử khám trên hệ thống. Không thể xóa!",
+      });
+    }
+
+    await Customer.findByIdAndDelete(customer._id);
     return res.json({
       message: "Xóa khách hàng thành công!",
       customer,

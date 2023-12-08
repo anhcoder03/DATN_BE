@@ -5,7 +5,7 @@ export const getAllNotification = async (req, res) => {
     _page = 1,
     _limit = 10,
     _sort = "createdAt",
-    _order = "asc",
+    _order = "desc",
     search,
     _status,
     _categoryNotification,
