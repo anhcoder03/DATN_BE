@@ -489,7 +489,9 @@ export const sendOTP = async (req, res) => {
     // Tạo mã OTP và gửi mail cho người dùng
     await generateOtpCode(user);
 
-    return res.status(200).json({ message: "OTP code sent SUCCEED!" });
+    return res
+      .status(200)
+      .json({ message: "OTP code sent SUCCEED!", success: true });
   } catch (error) {
     return res.status(500).json({
       message: error.message,
@@ -506,9 +508,11 @@ export const verifyLoginOTP = async (req, res) => {
         .json({ message: "You haven't provided an OTP code!" });
     }
 
-    const user = await User.findOne({ "otpCode.otp": otp });
+    const user = await User.findOne({ "otpCode.otp": otp }).populate([
+      { path: "role", select: "name roleNumber" },
+    ]);
     if (!user) {
-      return res.status(404).json({ error: "User not found!" });
+      return res.status(404).json({ error: "Mã OTP không đúng!" });
     }
 
     if (
@@ -516,7 +520,7 @@ export const verifyLoginOTP = async (req, res) => {
       user.otpCode.otp !== otp ||
       Date.now() > user.otpCode.expirationTime
     ) {
-      return res.status(401).json({ message: "Invalid or expired OTP code!" });
+      return res.status(401).json({ message: "Mã OTP đã hết hạn!" });
     }
 
     user.otpCode = undefined;
@@ -536,7 +540,7 @@ export const verifyLoginOTP = async (req, res) => {
     });
 
     return res.status(200).json({
-      message: "Login with OTP code SUCCEED!",
+      message: "Đăng nhập thành công!",
       accessToken,
       refreshToken,
       user,
